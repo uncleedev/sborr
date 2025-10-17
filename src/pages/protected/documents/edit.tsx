@@ -25,7 +25,10 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { FileInput } from "@/components/shared/file-input";
 
-import { SELECT_STATUS, SELECT_TYPE } from "@/constants/select-item";
+import {
+  SELECT_DOCUMENT_STATUS,
+  SELECT_DOCUMENT_TYPE,
+} from "@/constants/select-item";
 import {
   EditDocumentForm,
   editDocumentSchema,
@@ -142,7 +145,7 @@ export default function EditDocument({ open, onClose, document }: Props) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      {SELECT_TYPE.map((item, index) => (
+                      {SELECT_DOCUMENT_TYPE.map((item, index) => (
                         <SelectItem key={index} value={item}>
                           {item}
                         </SelectItem>
@@ -169,7 +172,7 @@ export default function EditDocument({ open, onClose, document }: Props) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      {SELECT_STATUS.map((item, index) => (
+                      {SELECT_DOCUMENT_STATUS.map((item, index) => (
                         <SelectItem
                           key={index}
                           value={item}

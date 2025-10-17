@@ -1,6 +1,6 @@
+import { useEffect } from "react";
 import { useDocumentStore } from "@/stores/document-store";
 import { DocumentCreate, DocumentUpdate } from "@/types/document-type";
-import { useEffect } from "react";
 import { toast } from "sonner";
 
 export const useDocument = () => {
@@ -12,16 +12,18 @@ export const useDocument = () => {
     createDocument,
     updateDocument,
     deleteDocument,
+    subscribe,
+    unsubscribe,
   } = useDocumentStore();
 
   useEffect(() => {
     getAllDocuments();
+    subscribe();
+
+    return () => unsubscribe();
   }, []);
 
-  const handleAddDocument = async (
-    document: DocumentCreate,
-    file?: File
-  ): Promise<boolean> => {
+  const handleAddDocument = async (document: DocumentCreate, file?: File) => {
     try {
       await createDocument(document, file);
       toast.success("Successfully added document");
@@ -36,7 +38,7 @@ export const useDocument = () => {
     id: string,
     newDocument: DocumentUpdate,
     newFile?: File
-  ): Promise<boolean> => {
+  ) => {
     try {
       await updateDocument(id, newDocument, newFile);
       toast.success("Successfully updated document");
@@ -47,10 +49,7 @@ export const useDocument = () => {
     }
   };
 
-  const handleDeleteDocument = async (
-    id: string,
-    filepath: string
-  ): Promise<boolean> => {
+  const handleDeleteDocument = async (id: string, filepath: string) => {
     try {
       await deleteDocument(id, filepath);
       toast.success("Successfully deleted document");
@@ -65,7 +64,6 @@ export const useDocument = () => {
     documents,
     loading,
     error,
-    getAllDocuments,
     handleAddDocument,
     handleEditDocument,
     handleDeleteDocument,

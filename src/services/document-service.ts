@@ -4,7 +4,6 @@ import {
   DocumentCreate,
   DocumentUpdate,
 } from "@/types/document-type";
-import { file } from "zod";
 
 export const documentService = {
   /* ---------- CREATE ---------- */
@@ -25,13 +24,11 @@ export const documentService = {
       const { error } = await supabase.storage
         .from("documents")
         .upload(filepath, file, { upsert: true });
-
       if (error) throw new Error(error.message || "Failed to upload file");
 
-      const { data } = await supabase.storage
+      const { data } = supabase.storage
         .from("documents")
         .getPublicUrl(filepath);
-
       fileData = {
         file_url: data.publicUrl,
         file_path: filepath,
@@ -44,7 +41,6 @@ export const documentService = {
       .insert([{ ...document, ...fileData }])
       .select("*")
       .order("created_at", { ascending: false });
-
     if (error) throw new Error(error.message || "Failed to create document");
     return data as Document[];
   },
@@ -55,9 +51,7 @@ export const documentService = {
       .from("documents")
       .select("*")
       .order("created_at", { ascending: false });
-
     if (error) throw new Error(error.message || "Failed to get all documents");
-
     return data as Document[];
   },
 
@@ -78,41 +72,34 @@ export const documentService = {
       .select("*")
       .eq("id", id)
       .single();
-
-    if (fetchError || !existingDocs) {
+    if (fetchError || !existingDocs)
       throw new Error(fetchError?.message || "Document not found");
-    }
 
     const oldFilepath = existingDocs.file_path;
 
     if (newFile) {
       const filename = `${newDocument.type}-${newFile.name}`;
       const filepath = `${newDocument.type}/${filename}`;
-
       const { error: uploadError } = await supabase.storage
         .from("documents")
         .upload(filepath, newFile, { upsert: true });
-
       if (uploadError) throw new Error(uploadError.message);
 
       const { data: publicData } = supabase.storage
         .from("documents")
         .getPublicUrl(filepath);
-
       fileData = {
         file_url: publicData.publicUrl,
         file_path: filepath,
-        file_name: file.name,
+        file_name: newFile.name,
       };
 
       if (oldFilepath && oldFilepath !== filepath) {
         const { error: deleteError } = await supabase.storage
           .from("documents")
           .remove([oldFilepath]);
-
-        if (deleteError) {
+        if (deleteError)
           console.warn("Failed to delete old file:", deleteError.message);
-        }
       }
     }
 
@@ -122,7 +109,6 @@ export const documentService = {
       .eq("id", id)
       .select("*")
       .single();
-
     if (error) throw new Error(error.message || "Failed to update document");
     return data as Document;
   },
@@ -133,7 +119,6 @@ export const documentService = {
       const { error } = await supabase.storage
         .from("documents")
         .remove([filepath]);
-
       if (error)
         throw new Error(error.message || "Failed to remove document file");
     }
@@ -144,9 +129,33 @@ export const documentService = {
       .eq("id", id)
       .select("*")
       .order("created_at", { ascending: false });
-
     if (error) throw new Error(error.message || "Failed to delete document");
-
     return data as Document[];
+  },
+
+  /* ---------- REAL-TIME SUBSCRIPTION ---------- */
+  subscribeToDocuments(
+    callback: (payload: {
+      eventType: "INSERT" | "UPDATE" | "DELETE";
+      new: any;
+      old: any;
+    }) => void
+  ) {
+    const channel = supabase
+      .channel("documents-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "documents" },
+        (payload) => {
+          callback({
+            eventType: payload.eventType as "INSERT" | "UPDATE" | "DELETE",
+            new: payload.new,
+            old: payload.old,
+          });
+        }
+      )
+      .subscribe();
+
+    return channel;
   },
 };

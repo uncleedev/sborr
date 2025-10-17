@@ -26,24 +26,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { Plus } from "lucide-react";
 
-import { SELECT_STATUS, SELECT_TYPE } from "@/constants/select-item";
+import {
+  SELECT_DOCUMENT_STATUS,
+  SELECT_DOCUMENT_TYPE,
+} from "@/constants/select-item";
 import { FileInput } from "@/components/shared/file-input";
 import { AddDocumentForm, addDocumentSchema } from "@/schemas/document-schema";
-import {
-  DocumentCreate,
-  DocumentStatus,
-  DocumentType,
-} from "@/types/document-type";
+import { DocumentStatus, DocumentType } from "@/types/document-type";
+import { useDocument } from "@/hooks/useDocument";
 
-interface Props {
-  handleAddDocument: (
-    document: DocumentCreate,
-    file?: File
-  ) => Promise<boolean>;
-}
-
-export default function AddDocument({ handleAddDocument }: Props) {
+export default function AddDocument() {
   const [status, setStatus] = useState("");
+  const { handleAddDocument } = useDocument();
 
   const form = useForm<AddDocumentForm>({
     resolver: zodResolver(addDocumentSchema),
@@ -72,7 +66,6 @@ export default function AddDocument({ handleAddDocument }: Props) {
   const onSubmit = async (data: AddDocumentForm) => {
     const { file, ...payload } = data;
     const success = await handleAddDocument(payload, file ?? undefined);
-
     if (success) reset();
   };
 
@@ -81,11 +74,11 @@ export default function AddDocument({ handleAddDocument }: Props) {
       <DialogTrigger asChild>
         <Button>
           <Plus />
-          <span className="font-semibold">Add Document</span>
+          <span className="font-semibold hidden md:inline">Add Document</span>
         </Button>
       </DialogTrigger>
 
-      <DialogContent>
+      <DialogContent className="">
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="space-y-4 lg:space-y-6"
@@ -95,11 +88,10 @@ export default function AddDocument({ handleAddDocument }: Props) {
             <DialogDescription>Add new legislative document</DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-2.5 lg:space-y-4">
+          <div className="space-y-4">
             {/* Document Type & Status */}
-            <div className="w-full flex items-center justify-between gap-4">
-              {/* Document Type */}
-              <div className="w-full space-y-2">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="w-full md:w-1/2 space-y-2">
                 <Label>Document Type</Label>
                 <Select
                   onValueChange={(val) => setValue("type", val as DocumentType)}
@@ -110,13 +102,9 @@ export default function AddDocument({ handleAddDocument }: Props) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      {SELECT_TYPE.map((item, index) => (
-                        <SelectItem
-                          key={index}
-                          value={item}
-                          className="capitalize"
-                        >
-                          {item}
+                      {SELECT_DOCUMENT_TYPE.map((item, index) => (
+                        <SelectItem key={index} value={item}>
+                          {item.charAt(0).toUpperCase() + item.slice(1)}
                         </SelectItem>
                       ))}
                     </SelectGroup>
@@ -127,8 +115,7 @@ export default function AddDocument({ handleAddDocument }: Props) {
                 )}
               </div>
 
-              {/* Status */}
-              <div className="w-full space-y-2">
+              <div className="w-full md:w-1/2 space-y-2">
                 <Label>Status</Label>
                 <Select
                   value={status}
@@ -142,13 +129,11 @@ export default function AddDocument({ handleAddDocument }: Props) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      {SELECT_STATUS.map((item, index) => (
-                        <SelectItem
-                          key={index}
-                          value={item}
-                          className="capitalize"
-                        >
-                          {item}
+                      {SELECT_DOCUMENT_STATUS.map((item, index) => (
+                        <SelectItem key={index} value={item} className="">
+                          {(
+                            item.charAt(0).toUpperCase() + item.slice(1)
+                          ).replace("_", " ")}
                         </SelectItem>
                       ))}
                     </SelectGroup>
@@ -164,16 +149,15 @@ export default function AddDocument({ handleAddDocument }: Props) {
 
             {/* Conditional Approved Fields */}
             {["archived", "vetoed"].includes(selectedStatus) && (
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="w-full md:w-1/2 space-y-2">
                   <Label>Approved By</Label>
                   <Input
                     {...register("approved_by")}
                     placeholder="Approved By"
                   />
                 </div>
-
-                <div className="space-y-2">
+                <div className="w-full md:w-1/2 space-y-2">
                   <Label>Approved At</Label>
                   <Input type="date" {...register("approved_at")} />
                 </div>
@@ -203,7 +187,7 @@ export default function AddDocument({ handleAddDocument }: Props) {
               )}
             </div>
 
-            {/* Series (Year) */}
+            {/* Series */}
             <div className="space-y-2">
               <Label>Series (Year)</Label>
               <Select
@@ -253,13 +237,12 @@ export default function AddDocument({ handleAddDocument }: Props) {
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:justify-end">
             <DialogClose asChild>
               <Button variant="outline" type="button" disabled={isSubmitting}>
                 Close
               </Button>
             </DialogClose>
-
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Saving..." : "Save"}
             </Button>
