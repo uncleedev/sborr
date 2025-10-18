@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -8,7 +8,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import {
@@ -21,13 +20,12 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus } from "lucide-react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useSession } from "@/hooks/useSession";
 import { useDocument } from "@/hooks/useDocument";
-import { SessionCreate, AgendaCreate } from "@/types/session-type";
+import { Session, SessionUpdate, AgendaCreate } from "@/types/session-type";
 import { SELECT_SESSION_TYPE } from "@/constants/select-item";
 
 const sessionSchema = z.object({
@@ -40,18 +38,23 @@ const sessionSchema = z.object({
 
 type FormValues = z.infer<typeof sessionSchema>;
 
-export default function AddSession() {
-  const { handleAddSession } = useSession();
-  const { forReviewDocuments } = useDocument();
+interface Props {
+  open: boolean;
+  onClose: () => void;
+  session: Session | null;
+}
 
+export default function EditSession({ open, onClose, session }: Props) {
+  const { handleEditSession, getAgendaBySchedule } = useSession();
+  const { forReviewDocuments } = useDocument();
   const [selectedDocs, setSelectedDocs] = useState<string[]>([]);
 
   const {
     handleSubmit,
     control,
     register,
-    formState: { errors, isSubmitting },
     reset,
+    formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(sessionSchema),
     defaultValues: {
@@ -63,6 +66,26 @@ export default function AddSession() {
     },
   });
 
+  // Populate form when session changes
+  useEffect(() => {
+    if (!session) return;
+
+    const dateObj = new Date(session.scheduled_at);
+    const date = dateObj.toISOString().split("T")[0];
+    const time = dateObj.toTimeString().slice(0, 5);
+
+    reset({
+      type: session.type,
+      date,
+      time,
+      venue: session.venue || "",
+      description: session.description || "",
+    });
+
+    const agendaDocs = getAgendaBySchedule(session.id).map((doc) => doc.id);
+    setSelectedDocs(agendaDocs);
+  }, [session, reset]);
+
   const handleCheckbox = (id: string) => {
     setSelectedDocs((prev) =>
       prev.includes(id) ? prev.filter((d) => d !== id) : [...prev, id]
@@ -70,41 +93,38 @@ export default function AddSession() {
   };
 
   const onSubmit = async (data: FormValues) => {
+    if (!session) return;
+
     const scheduled_at = new Date(`${data.date}T${data.time}`).toISOString();
 
-    const newSession: SessionCreate = {
+    const updatedSession: SessionUpdate = {
       type: data.type,
       scheduled_at,
       venue: data.venue,
       description: data.description,
-      status: "scheduled",
     };
 
     const agendas: AgendaCreate[] = selectedDocs.map((docId) => ({
       document_id: docId,
-      session_id: "", // sessionService will fill this after inserting session
+      session_id: session.id,
     }));
 
-    const success = await handleAddSession(newSession, agendas);
-    if (success) {
-      reset();
-      setSelectedDocs([]);
-    }
+    const success = await handleEditSession(
+      session.id,
+      updatedSession,
+      agendas
+    );
+    if (success) onClose();
   };
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus />
-          <span className="font-semibold">Add Session</span>
-        </Button>
-      </DialogTrigger>
-
+    <Dialog open={open} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Session</DialogTitle>
-          <DialogDescription>Add new session schedule</DialogDescription>
+          <DialogTitle>Edit Session</DialogTitle>
+          <DialogDescription>
+            Edit the session details and attached documents
+          </DialogDescription>
         </DialogHeader>
 
         <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
@@ -173,7 +193,7 @@ export default function AddSession() {
               <Textarea {...register("description")} />
             </div>
 
-            {/* Documents for Review */}
+            {/* Documents */}
             <div className="space-y-2">
               <Label>Attach Documents (For Review)</Label>
               {forReviewDocuments.map((doc) => (
@@ -193,9 +213,8 @@ export default function AddSession() {
             <DialogClose asChild>
               <Button variant="outline">Close</Button>
             </DialogClose>
-
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Save..." : "Save"}
+              {isSubmitting ? "Saving..." : "Save"}
             </Button>
           </DialogFooter>
         </form>

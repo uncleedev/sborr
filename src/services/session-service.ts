@@ -1,59 +1,135 @@
 import { supabase } from "@/lib/supabase";
-import { Session, SessionCreate, SessionUpdate } from "@/types/session-type";
+import {
+  AgendaCreate,
+  Agenda,
+  Session,
+  SessionCreate,
+  SessionUpdate,
+} from "@/types/session-type";
 
 export const sessionService = {
   /* ---------- CREATE ---------- */
-  async createSession(session: SessionCreate): Promise<Session[]> {
-    const { data, error } = await supabase
+  async createSession(
+    session: SessionCreate,
+    agendas: AgendaCreate[]
+  ): Promise<{ sessions: Session[]; agendas: Agenda[] }> {
+    const { data: sessionData, error: sessionError } = await supabase
       .from("sessions")
       .insert([{ ...session }])
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (error) throw new Error(error.message || "Failed to create session");
+    if (sessionError)
+      throw new Error(sessionError.message || "Failed to create session");
 
-    return data as Session[];
+    let agendaData: Agenda[] = [];
+
+    if (sessionData && agendas.length > 0) {
+      const session_id = sessionData[0].id;
+      const newAgendaData = agendas.map((agenda) => ({
+        ...agenda,
+        session_id,
+      }));
+
+      const { data: insertedAgenda, error: agendaError } = await supabase
+        .from("session_documents")
+        .insert(newAgendaData)
+        .select("*");
+
+      if (agendaError)
+        throw new Error(agendaError.message || "Failed to attach documents");
+
+      agendaData = insertedAgenda as Agenda[];
+    }
+
+    return { sessions: sessionData as Session[], agendas: agendaData };
   },
 
   /* ---------- READ ---------- */
-  async getAllSession(): Promise<Session[]> {
-    const { data, error } = await supabase
+  async getAllSession(): Promise<{ sessions: Session[]; agendas: Agenda[] }> {
+    const { data: sessionsData, error: sessionsError } = await supabase
       .from("sessions")
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (error) throw new Error(error.message || "Failed to get all session");
+    if (sessionsError)
+      throw new Error(sessionsError.message || "Failed to get all sessions");
 
-    return data as Session[];
+    const { data: agendasData, error: agendasError } = await supabase
+      .from("session_documents")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (agendasError)
+      throw new Error(agendasError.message || "Failed to get all agendas");
+
+    return {
+      sessions: sessionsData as Session[],
+      agendas: agendasData as Agenda[],
+    };
   },
 
   /* ---------- UPDATE ---------- */
   async updateSession(
     id: string,
-    newSession: SessionUpdate
-  ): Promise<Session[]> {
-    const { data, error } = await supabase
+    newSession: SessionUpdate,
+    agendas?: AgendaCreate[]
+  ): Promise<{ sessions: Session[]; agendas: Agenda[] }> {
+    const { data: sessionData, error: sessionError } = await supabase
       .from("sessions")
       .update([{ ...newSession }])
       .eq("id", id)
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (error) throw new Error(error.message || "Failed to update session");
+    if (sessionError)
+      throw new Error(sessionError.message || "Failed to update session");
 
-    return data as Session[];
+    let agendaData: Agenda[] = [];
+
+    if (agendas && agendas.length > 0) {
+      const { error: deleteError } = await supabase
+        .from("session_documents")
+        .delete()
+        .eq("session_id", id);
+
+      if (deleteError)
+        throw new Error(
+          deleteError.message || "Failed to remove existing session agendas"
+        );
+
+      const newAgendaData = agendas.map((agenda) => ({
+        ...agenda,
+        session_id: id,
+      }));
+      const { data: insertedAgenda, error: insertError } = await supabase
+        .from("session_documents")
+        .insert(newAgendaData)
+        .select("*");
+
+      if (insertError)
+        throw new Error(
+          insertError.message || "Failed to update session agendas"
+        );
+
+      agendaData = insertedAgenda as Agenda[];
+    }
+
+    return { sessions: sessionData as Session[], agendas: agendaData };
   },
 
+  /* ---------- DELETE ---------- */
   async deleteSession(id: string): Promise<Session[]> {
-    const { data, error } = await supabase
+    const { data: sessionData, error: sessionError } = await supabase
       .from("sessions")
       .delete()
       .eq("id", id)
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (error) throw new Error(error.message || "Failed to delete session");
+    if (sessionError)
+      throw new Error(sessionError.message || "Failed to delete session");
 
-    return data as Session[];
+    return sessionData as Session[];
   },
 };

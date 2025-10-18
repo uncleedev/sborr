@@ -1,11 +1,17 @@
 import { useSessionStore } from "@/stores/session-store";
-import { SessionCreate, SessionUpdate } from "@/types/session-type";
+import {
+  AgendaCreate,
+  SessionCreate,
+  SessionUpdate,
+} from "@/types/session-type";
 import { useEffect } from "react";
 import { toast } from "sonner";
+import { useDocument } from "./useDocument";
 
 export const useSession = () => {
   const {
     sessions,
+    agendas,
     loading,
     error,
     getAllSessions,
@@ -16,55 +22,75 @@ export const useSession = () => {
     unsubscribe,
   } = useSessionStore();
 
+  const { documents } = useDocument();
+
   useEffect(() => {
     getAllSessions();
     subscribe();
-
     return () => unsubscribe();
   }, []);
 
-  const handleAddSession = async (session: SessionCreate): Promise<boolean> => {
+  const handleAddSession = async (
+    session: SessionCreate,
+    agenda: AgendaCreate[]
+  ): Promise<boolean> => {
     try {
-      await createSession(session);
+      await createSession(session, agenda);
       toast.success("Successfully added session");
       return true;
-    } catch (error: any) {
-      toast.error(error);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to add session");
       return false;
     }
   };
 
   const handleEditSession = async (
     id: string,
-    newSession: SessionUpdate
+    newSession: SessionUpdate,
+    agendas?: AgendaCreate[]
   ): Promise<boolean> => {
     try {
-      await updateSession(id, newSession);
+      await updateSession(id, newSession, agendas);
       toast.success("Successfully updated session");
       return true;
-    } catch (error: any) {
-      toast.error(error);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update session");
       return false;
     }
   };
 
-  const hadnleDeleteSession = async (id: string): Promise<boolean> => {
+  const handleDeleteSession = async (id: string): Promise<boolean> => {
     try {
       await deleteSession(id);
       toast.success("Successfully deleted session");
       return true;
-    } catch (error: any) {
-      toast.error(error);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete session");
       return false;
     }
+  };
+  const getAgendaBySchedule = (sessionId: string) => {
+    const sessionAgendas = agendas.filter(
+      (agenda) => agenda.session_id === sessionId
+    );
+
+    const documentIds = sessionAgendas.map((agenda) => agenda.document_id);
+
+    const sessionDocuments = documents.filter((doc) =>
+      documentIds.includes(doc.id)
+    );
+
+    return sessionDocuments;
   };
 
   return {
     sessions,
+    agendas,
     loading,
     error,
+    getAgendaBySchedule,
     handleAddSession,
     handleEditSession,
-    hadnleDeleteSession,
+    handleDeleteSession,
   };
 };

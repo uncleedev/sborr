@@ -1,3 +1,4 @@
+import { useState, useMemo } from "react";
 import {
   Table,
   TableBody,
@@ -14,11 +15,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Document } from "@/types/document-type";
-import { useState, useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import ViewDocument from "./view";
-import EditDocument from "./edit";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -26,15 +23,19 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Eye, MoreHorizontal, Pencil, Trash } from "lucide-react";
-import DeleteDocument from "./delete";
+import { MoreHorizontal, Pencil, Trash, Eye } from "lucide-react";
+import { Session } from "@/types/session-type";
+import ViewSession from "./view";
+import EditSession from "./edit";
+import DeleteSession from "./delete";
+import { formatDateWithOrdinal } from "@/lib/utils";
 
 interface Props {
-  data: Document[];
+  data: Session[];
   loading: boolean;
 }
 
-export default function TableDocument({ data, loading }: Props) {
+export default function TableSession({ data, loading }: Props) {
   const itemsPerPage = 10;
   const [page, setPage] = useState(1);
 
@@ -42,7 +43,7 @@ export default function TableDocument({ data, loading }: Props) {
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
-  const [selectedDoc, setSelectedDoc] = useState<Document | null>(null);
+  const [selectedSession, setSelectedSession] = useState<Session | null>(null);
 
   const totalPages = Math.ceil(data.length / itemsPerPage);
 
@@ -56,18 +57,18 @@ export default function TableDocument({ data, loading }: Props) {
     if (newPage >= 1 && newPage <= totalPages) setPage(newPage);
   };
 
-  const handleView = (doc: Document) => {
-    setSelectedDoc(doc);
+  const handleView = (session: Session) => {
+    setSelectedSession(session);
     setViewOpen(true);
   };
 
-  const handleEdit = (doc: Document) => {
-    setSelectedDoc(doc);
+  const handleEdit = (session: Session) => {
+    setSelectedSession(session);
     setEditOpen(true);
   };
 
-  const handleDelete = (doc: Document) => {
-    setSelectedDoc(doc);
+  const handleDelete = (session: Session) => {
+    setSelectedSession(session);
     setDeleteOpen(true);
   };
 
@@ -76,10 +77,10 @@ export default function TableDocument({ data, loading }: Props) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Title</TableHead>
-            <TableHead>Author</TableHead>
             <TableHead>Type</TableHead>
-            <TableHead>Series</TableHead>
+            <TableHead>Date</TableHead>
+            <TableHead>Time</TableHead>
+            <TableHead>Venue</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
@@ -99,17 +100,24 @@ export default function TableDocument({ data, loading }: Props) {
           ) : paginatedData.length === 0 ? (
             <TableRow>
               <TableCell colSpan={6} className="text-center py-6">
-                No documents found.
+                No sessions found.
               </TableCell>
             </TableRow>
           ) : (
-            paginatedData.map((doc) => (
-              <TableRow key={doc.id}>
-                <TableCell>{doc.title}</TableCell>
-                <TableCell>{doc.author_name}</TableCell>
-                <TableCell className="capitalize">{doc.type}</TableCell>
-                <TableCell>{doc.series}</TableCell>
-                <TableCell className="capitalize">{doc.status}</TableCell>
+            paginatedData.map((session) => (
+              <TableRow key={session.id}>
+                <TableCell className="capitalize">{session.type}</TableCell>
+                <TableCell>
+                  {formatDateWithOrdinal(session.scheduled_at)}
+                </TableCell>
+                <TableCell>
+                  {new Date(session.scheduled_at).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </TableCell>
+                <TableCell>{session.venue || "-"}</TableCell>
+                <TableCell className="capitalize">{session.status}</TableCell>
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -122,31 +130,31 @@ export default function TableDocument({ data, loading }: Props) {
                         <Button
                           variant="ghost"
                           className="w-full justify-start"
-                          onClick={() => handleView(doc)}
+                          onClick={() => handleView(session)}
                         >
-                          <Eye className="size-4 mr-1" />
-                          View
+                          <Eye className="size-4 mr-1" /> View
                         </Button>
                       </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start"
-                          onClick={() => handleEdit(doc)}
-                        >
-                          <Pencil className="size-4 mr-1" />
-                          Edit
-                        </Button>
-                      </DropdownMenuItem>
+
+                      {session.status === "draft" && (
+                        <DropdownMenuItem asChild>
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start"
+                            onClick={() => handleEdit(session)}
+                          >
+                            <Pencil className="size-4 mr-1" /> Edit
+                          </Button>
+                        </DropdownMenuItem>
+                      )}
 
                       <DropdownMenuItem asChild>
                         <Button
                           variant="ghost"
                           className="w-full justify-start"
-                          onClick={() => handleDelete(doc)}
+                          onClick={() => handleDelete(session)}
                         >
-                          <Trash className="size-4 mr-1 text-red-600" />
-                          Delete
+                          <Trash className="size-4 mr-1 text-red-600" /> Delete
                         </Button>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -191,23 +199,21 @@ export default function TableDocument({ data, loading }: Props) {
         </Pagination>
       )}
 
-      {/* View & Edit Modals */}
-      <ViewDocument
+      {/* View, Edit, Delete Modals */}
+      <ViewSession
         open={viewOpen}
         onClose={() => setViewOpen(false)}
-        document={selectedDoc}
+        session={selectedSession}
       />
-
-      <EditDocument
+      <EditSession
         open={editOpen}
         onClose={() => setEditOpen(false)}
-        document={selectedDoc}
+        session={selectedSession}
       />
-
-      <DeleteDocument
+      <DeleteSession
         open={deleteOpen}
         onClose={() => setDeleteOpen(false)}
-        document={selectedDoc}
+        session={selectedSession}
       />
     </div>
   );

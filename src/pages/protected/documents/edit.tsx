@@ -147,7 +147,7 @@ export default function EditDocument({ open, onClose, document }: Props) {
                     <SelectGroup>
                       {SELECT_DOCUMENT_TYPE.map((item, index) => (
                         <SelectItem key={index} value={item}>
-                          {item}
+                          {item.charAt(0).toUpperCase() + item.slice(1)}
                         </SelectItem>
                       ))}
                     </SelectGroup>
@@ -172,13 +172,13 @@ export default function EditDocument({ open, onClose, document }: Props) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      {SELECT_DOCUMENT_STATUS.map((item, index) => (
-                        <SelectItem
-                          key={index}
-                          value={item}
-                          className="capitalize"
-                        >
-                          {item}
+                      {SELECT_DOCUMENT_STATUS.filter(
+                        (item) => item !== "in_session"
+                      ).map((item, index) => (
+                        <SelectItem key={index} value={item}>
+                          {(
+                            item.charAt(0).toUpperCase() + item.slice(1)
+                          ).replace("_", " ")}
                         </SelectItem>
                       ))}
                     </SelectGroup>

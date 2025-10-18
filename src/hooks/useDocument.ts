@@ -1,6 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDocumentStore } from "@/stores/document-store";
-import { DocumentCreate, DocumentUpdate } from "@/types/document-type";
+import {
+  Document,
+  DocumentCreate,
+  DocumentUpdate,
+} from "@/types/document-type";
 import { toast } from "sonner";
 
 export const useDocument = () => {
@@ -16,12 +20,25 @@ export const useDocument = () => {
     unsubscribe,
   } = useDocumentStore();
 
+  const [forReviewDocuments, setForReviewDocuments] = useState<Document[]>([]);
+
   useEffect(() => {
-    getAllDocuments();
+    const fetchDocuments = async () => {
+      await getAllDocuments();
+    };
+
+    fetchDocuments();
     subscribe();
 
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    const filtered = documents.filter(
+      (document) => document.status === "for_review"
+    );
+    setForReviewDocuments(filtered);
+  }, [documents]);
 
   const handleAddDocument = async (document: DocumentCreate, file?: File) => {
     try {
@@ -64,6 +81,7 @@ export const useDocument = () => {
     documents,
     loading,
     error,
+    forReviewDocuments,
     handleAddDocument,
     handleEditDocument,
     handleDeleteDocument,

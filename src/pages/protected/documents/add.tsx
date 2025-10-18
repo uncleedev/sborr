@@ -129,8 +129,10 @@ export default function AddDocument() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      {SELECT_DOCUMENT_STATUS.map((item, index) => (
-                        <SelectItem key={index} value={item} className="">
+                      {SELECT_DOCUMENT_STATUS.filter(
+                        (item) => item !== "in_session"
+                      ).map((item, index) => (
+                        <SelectItem key={index} value={item}>
                           {(
                             item.charAt(0).toUpperCase() + item.slice(1)
                           ).replace("_", " ")}
@@ -139,6 +141,7 @@ export default function AddDocument() {
                     </SelectGroup>
                   </SelectContent>
                 </Select>
+
                 {errors.status && (
                   <p className="text-sm text-red-500">
                     {errors.status.message}

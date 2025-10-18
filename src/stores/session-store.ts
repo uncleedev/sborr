@@ -1,17 +1,31 @@
 import { create } from "zustand";
-import { Session, SessionCreate, SessionUpdate } from "@/types/session-type";
+import {
+  Agenda,
+  AgendaCreate,
+  Session,
+  SessionCreate,
+  SessionUpdate,
+} from "@/types/session-type";
 import { sessionService } from "@/services/session-service";
 import { supabase } from "@/lib/supabase";
 
 interface SessionState {
-  sessions: Session[] | [];
+  sessions: Session[];
+  agendas: Agenda[];
   loading: boolean;
   error: string | null;
   channel?: ReturnType<typeof supabase.channel>;
 
-  createSession: (session: SessionCreate) => Promise<void>;
+  createSession: (
+    session: SessionCreate,
+    agendas: AgendaCreate[]
+  ) => Promise<void>;
   getAllSessions: () => Promise<void>;
-  updateSession: (id: string, newSession: SessionUpdate) => Promise<void>;
+  updateSession: (
+    id: string,
+    newSession: SessionUpdate,
+    agendas?: AgendaCreate[]
+  ) => Promise<void>;
   deleteSession: (id: string) => Promise<void>;
   subscribe: () => void;
   unsubscribe: () => void;
@@ -19,15 +33,19 @@ interface SessionState {
 
 export const useSessionStore = create<SessionState>((set, get) => ({
   sessions: [],
+  agendas: [],
   loading: false,
   error: null,
   channel: undefined,
 
-  createSession: async (session) => {
+  createSession: async (session, agendas) => {
     set({ loading: true, error: null });
     try {
-      const data = await sessionService.createSession(session);
-      set((state) => ({ sessions: [...data, ...state.sessions] }));
+      const data = await sessionService.createSession(session, agendas);
+      set((state) => ({
+        sessions: [...data.sessions, ...state.sessions],
+        agendas: [...data.agendas, ...state.agendas],
+      }));
     } catch (err: any) {
       set({ error: err.message });
       throw err.message;
@@ -40,7 +58,7 @@ export const useSessionStore = create<SessionState>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const data = await sessionService.getAllSession();
-      set({ sessions: data });
+      set({ sessions: data.sessions, agendas: data.agendas });
     } catch (err: any) {
       set({ error: err.message });
       throw err.message;
@@ -49,14 +67,18 @@ export const useSessionStore = create<SessionState>((set, get) => ({
     }
   },
 
-  updateSession: async (id, newSession) => {
+  updateSession: async (id, newSession, agendas) => {
     set({ loading: true, error: null });
     try {
-      const updatedSession = await sessionService.updateSession(id, newSession);
+      const data = await sessionService.updateSession(id, newSession, agendas);
       set((state) => ({
         sessions: state.sessions.map((s) =>
-          s.id === id ? updatedSession[0] : s
+          s.id === id ? data.sessions[0] : s
         ),
+        agendas: [
+          ...state.agendas.filter((a) => a.session_id !== id),
+          ...data.agendas,
+        ],
       }));
     } catch (err: any) {
       set({ error: err.message });
@@ -72,6 +94,7 @@ export const useSessionStore = create<SessionState>((set, get) => ({
       await sessionService.deleteSession(id);
       set((state) => ({
         sessions: state.sessions.filter((s) => s.id !== id),
+        agendas: state.agendas.filter((a) => a.session_id !== id),
       }));
     } catch (err: any) {
       set({ error: err.message });
@@ -90,7 +113,6 @@ export const useSessionStore = create<SessionState>((set, get) => ({
         "postgres_changes",
         { event: "*", schema: "public", table: "sessions" },
         ({ eventType, new: newData, old: oldData }) => {
-          // Cast the Supabase payload to Session
           const newSession = newData as Session;
           const oldSession = oldData as Session;
 
@@ -103,13 +125,11 @@ export const useSessionStore = create<SessionState>((set, get) => ({
                   updatedSessions.unshift(newSession);
                 }
                 break;
-
               case "UPDATE":
                 updatedSessions = updatedSessions.map((s) =>
                   s.id === newSession.id ? newSession : s
                 );
                 break;
-
               case "DELETE":
                 updatedSessions = updatedSessions.filter(
                   (s) => s.id !== oldSession.id

@@ -16,3 +16,15 @@ export interface Session {
 export type SessionCreate = Omit<Session, "id" | "created_at">;
 
 export type SessionUpdate = Partial<SessionCreate>;
+
+export interface Agenda {
+  id: string;
+  session_id: string;
+  document_id: string;
+
+  created_at: string;
+}
+
+export type AgendaCreate = Omit<Agenda, "id" | "created_at">;
+
+export type AgendaUpdate = Partial<AgendaCreate>;
