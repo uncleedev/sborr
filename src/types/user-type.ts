@@ -11,7 +11,7 @@ export interface User {
   lastname: string;
   email: string;
   role: UserRole;
-  bio: string;
+  bio?: string;
 
   created_at: string;
 }

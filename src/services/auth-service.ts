@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { UserCreate } from "@/types/user-type";
 
 export const authService = {
   async signin(email: string, password: string) {
@@ -6,17 +7,23 @@ export const authService = {
       email,
       password,
     });
-
-    if (error) throw new Error(error.message || "Failed to signin");
-
+    if (error) throw new Error(error.message);
     return data;
   },
 
   async getSession() {
     const { data, error } = await supabase.auth.getSession();
+    if (error) throw new Error(error.message);
+    return data;
+  },
 
-    if (error) throw new Error(error.message || "Failed to get session");
+  async inviteUser(user: UserCreate & { password: string }) {
+    const { data, error } = await supabase.functions.invoke("invite-user", {
+      body: user,
+    });
 
+    if (error) throw new Error(error.message);
+    if (data?.error) throw new Error(data.error);
     return data;
   },
 };

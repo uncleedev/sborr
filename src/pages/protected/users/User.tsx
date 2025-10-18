@@ -12,6 +12,7 @@ import { useMemo, useState } from "react";
 import TableUser from "./table";
 import { useUser } from "@/hooks/useUser";
 import AddUser from "./add";
+import InviteUser from "./invite";
 
 export default function UserPage() {
   const [search, setSearch] = useState("");
@@ -40,7 +41,11 @@ export default function UserPage() {
           <h3>User Management</h3>
           <p>Manage user accounts and roles.</p>
         </div>
-        <AddUser />
+
+        <div className="flex items-center gap-4">
+          <InviteUser />
+          <AddUser />
+        </div>
       </header>
 
       <Card className="p-4 flex flex-col gap-4">
