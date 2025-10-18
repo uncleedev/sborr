@@ -15,7 +15,8 @@ import {
   SELECT_SESSION_TYPE,
 } from "@/constants/select-item";
 import { useSession } from "@/hooks/useSession";
-import TableSession from "./table"; // import your session table
+import TableSession from "./table";
+import { formatDateWithOrdinal } from "@/lib/utils";
 
 export default function SessionPage() {
   const [search, setSearch] = useState("");
@@ -26,13 +27,10 @@ export default function SessionPage() {
 
   const filteredSessions = useMemo(() => {
     return sessions.filter((session) => {
-      const formattedDate = new Date(session.scheduled_at).toLocaleDateString(
-        "en-US",
-        { month: "long", day: "numeric", year: "numeric" }
-      );
-
       const matchesSearch =
-        formattedDate.toLowerCase().includes(search.toLowerCase()) ||
+        formatDateWithOrdinal(session.scheduled_at)
+          .toLowerCase()
+          .includes(search.toLowerCase()) ||
         session.venue?.toLowerCase().includes(search.toLowerCase()) ||
         session.description?.toLowerCase().includes(search.toLowerCase()) ||
         session.type.toLowerCase().includes(search.toLowerCase());

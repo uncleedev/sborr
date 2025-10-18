@@ -14,7 +14,8 @@ interface SessionState {
   agendas: Agenda[];
   loading: boolean;
   error: string | null;
-  channel?: ReturnType<typeof supabase.channel>;
+  sessionChannel?: ReturnType<typeof supabase.channel>;
+  agendaChannel?: ReturnType<typeof supabase.channel>;
 
   createSession: (
     session: SessionCreate,
@@ -36,16 +37,15 @@ export const useSessionStore = create<SessionState>((set, get) => ({
   agendas: [],
   loading: false,
   error: null,
-  channel: undefined,
+  sessionChannel: undefined,
+  agendaChannel: undefined,
 
+  /* ---------- CREATE ---------- */
   createSession: async (session, agendas) => {
     set({ loading: true, error: null });
     try {
-      const data = await sessionService.createSession(session, agendas);
-      set((state) => ({
-        sessions: [...data.sessions, ...state.sessions],
-        agendas: [...data.agendas, ...state.agendas],
-      }));
+      await sessionService.createSession(session, agendas);
+      get().getAllSessions();
     } catch (err: any) {
       set({ error: err.message });
       throw err.message;
@@ -54,6 +54,7 @@ export const useSessionStore = create<SessionState>((set, get) => ({
     }
   },
 
+  /* ---------- READ ---------- */
   getAllSessions: async () => {
     set({ loading: true, error: null });
     try {
@@ -67,6 +68,7 @@ export const useSessionStore = create<SessionState>((set, get) => ({
     }
   },
 
+  /* ---------- UPDATE ---------- */
   updateSession: async (id, newSession, agendas) => {
     set({ loading: true, error: null });
     try {
@@ -88,6 +90,7 @@ export const useSessionStore = create<SessionState>((set, get) => ({
     }
   },
 
+  /* ---------- DELETE ---------- */
   deleteSession: async (id) => {
     set({ loading: true, error: null });
     try {
@@ -104,53 +107,81 @@ export const useSessionStore = create<SessionState>((set, get) => ({
     }
   },
 
+  /* ---------- REAL-TIME SUBSCRIBE ---------- */
   subscribe: () => {
-    if (get().channel) return;
+    const { sessionChannel, agendaChannel } = get();
+    if (sessionChannel || agendaChannel) return;
 
-    const channel = supabase
-      .channel("sessions")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "sessions" },
-        ({ eventType, new: newData, old: oldData }) => {
-          const newSession = newData as Session;
-          const oldSession = oldData as Session;
+    const {
+      sessionChannel: newSessionChannel,
+      agendaChannel: newAgendaChannel,
+    } = sessionService.subscribeToSessions((payload) => {
+      set((state) => {
+        if (payload.table === "sessions") {
+          let updatedSessions = [...state.sessions];
 
-          set((state) => {
-            let updatedSessions = [...state.sessions];
+          switch (payload.eventType) {
+            case "INSERT":
+              if (!updatedSessions.some((s) => s.id === payload.new.id)) {
+                updatedSessions.unshift(payload.new as Session);
+              }
+              break;
+            case "UPDATE":
+              updatedSessions = updatedSessions.map((s) =>
+                s.id === payload.new.id ? (payload.new as Session) : s
+              );
+              break;
+            case "DELETE":
+              updatedSessions = updatedSessions.filter(
+                (s) => s.id !== payload.old.id
+              );
+              break;
+          }
 
-            switch (eventType) {
-              case "INSERT":
-                if (!updatedSessions.some((s) => s.id === newSession.id)) {
-                  updatedSessions.unshift(newSession);
-                }
-                break;
-              case "UPDATE":
-                updatedSessions = updatedSessions.map((s) =>
-                  s.id === newSession.id ? newSession : s
-                );
-                break;
-              case "DELETE":
-                updatedSessions = updatedSessions.filter(
-                  (s) => s.id !== oldSession.id
-                );
-                break;
-            }
-
-            return { sessions: updatedSessions };
-          });
+          return { sessions: updatedSessions };
         }
-      )
-      .subscribe();
 
-    set({ channel });
+        if (payload.table === "session_documents") {
+          let updatedAgendas = [...state.agendas];
+
+          switch (payload.eventType) {
+            case "INSERT":
+              if (!updatedAgendas.some((a) => a.id === payload.new.id)) {
+                updatedAgendas.unshift(payload.new as Agenda);
+              }
+              break;
+            case "UPDATE":
+              updatedAgendas = updatedAgendas.map((a) =>
+                a.id === payload.new.id ? (payload.new as Agenda) : a
+              );
+              break;
+            case "DELETE":
+              updatedAgendas = updatedAgendas.filter(
+                (a) => a.id !== payload.old.id
+              );
+              break;
+          }
+
+          return { agendas: updatedAgendas };
+        }
+
+        return state;
+      });
+    });
+
+    set({
+      sessionChannel: newSessionChannel,
+      agendaChannel: newAgendaChannel,
+    });
   },
 
+  /* ---------- REAL-TIME UNSUBSCRIBE ---------- */
   unsubscribe: () => {
-    const channel = get().channel;
-    if (channel) {
-      supabase.removeChannel(channel);
-      set({ channel: undefined });
-    }
+    const { sessionChannel, agendaChannel } = get();
+
+    if (sessionChannel) supabase.removeChannel(sessionChannel);
+    if (agendaChannel) supabase.removeChannel(agendaChannel);
+
+    set({ sessionChannel: undefined, agendaChannel: undefined });
   },
 }));

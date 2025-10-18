@@ -7,6 +7,7 @@ import Layout from "./pages/protected/layout";
 import ProtectedRoute from "./routes/protected-route";
 import PublicRoute from "./routes/public-route";
 import SessionPage from "./pages/protected/sessions/Session";
+import UserPage from "./pages/protected/users/User";
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
           <Route element={<Layout />}>
             <Route path="documents" element={<DocumentPage />} />
             <Route path="sessions" element={<SessionPage />} />
+            <Route path="users" element={<UserPage />} />
           </Route>
         </Route>
       </Routes>

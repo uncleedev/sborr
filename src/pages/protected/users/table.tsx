@@ -23,27 +23,26 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Pencil, Trash, Eye } from "lucide-react";
-import { Session } from "@/types/session-type";
-import ViewSession from "./view";
-import EditSession from "./edit";
-import DeleteSession from "./delete";
+import { Eye, Pencil, Trash, MoreHorizontal } from "lucide-react";
+import { User } from "@/types/user-type";
 import { formatDateWithOrdinal } from "@/lib/utils";
+import ViewUser from "./view";
+import EditUser from "./edit";
+import DeleteUser from "./delete";
 
 interface Props {
-  data: Session[];
+  data: User[];
   loading: boolean;
 }
 
-export default function TableSession({ data, loading }: Props) {
+export default function TableUser({ data, loading }: Props) {
   const itemsPerPage = 10;
   const [page, setPage] = useState(1);
 
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [viewOpen, setViewOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
-
-  const [selectedSession, setSelectedSession] = useState<Session | null>(null);
 
   const totalPages = Math.ceil(data.length / itemsPerPage);
 
@@ -57,18 +56,18 @@ export default function TableSession({ data, loading }: Props) {
     if (newPage >= 1 && newPage <= totalPages) setPage(newPage);
   };
 
-  const handleView = (session: Session) => {
-    setSelectedSession(session);
+  const handleView = (user: User) => {
+    setSelectedUser(user);
     setViewOpen(true);
   };
 
-  const handleEdit = (session: Session) => {
-    setSelectedSession(session);
+  const handleEdit = (user: User) => {
+    setSelectedUser(user);
     setEditOpen(true);
   };
 
-  const handleDelete = (session: Session) => {
-    setSelectedSession(session);
+  const handleDelete = (user: User) => {
+    setSelectedUser(user);
     setDeleteOpen(true);
   };
 
@@ -77,11 +76,10 @@ export default function TableSession({ data, loading }: Props) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Type</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead>Time</TableHead>
-            <TableHead>Venue</TableHead>
-            <TableHead>Status</TableHead>
+            <TableHead>Full Name</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>Role</TableHead>
+            <TableHead>Date Created</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -100,24 +98,19 @@ export default function TableSession({ data, loading }: Props) {
           ) : paginatedData.length === 0 ? (
             <TableRow>
               <TableCell colSpan={6} className="text-center py-6">
-                No sessions found.
+                No users found.
               </TableCell>
             </TableRow>
           ) : (
-            paginatedData.map((session) => (
-              <TableRow key={session.id}>
-                <TableCell className="capitalize">{session.type}</TableCell>
-                <TableCell>
-                  {formatDateWithOrdinal(session.scheduled_at)}
+            paginatedData.map((user) => (
+              <TableRow key={user.id}>
+                <TableCell className="capitalize">
+                  {user.firstname} {user.lastname}
                 </TableCell>
-                <TableCell>
-                  {new Date(session.scheduled_at).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </TableCell>
-                <TableCell>{session.venue || "-"}</TableCell>
-                <TableCell className="capitalize">{session.status}</TableCell>
+                <TableCell>{user.email}</TableCell>
+                <TableCell className="capitalize">{user.role}</TableCell>
+
+                <TableCell>{formatDateWithOrdinal(user.created_at)}</TableCell>
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -130,36 +123,29 @@ export default function TableSession({ data, loading }: Props) {
                         <Button
                           variant="ghost"
                           className="w-full justify-start"
-                          onClick={() => handleView(session)}
+                          onClick={() => handleView(user)}
                         >
                           <Eye className="size-4 mr-1" /> View
                         </Button>
                       </DropdownMenuItem>
-
-                      {session.status === "draft" && (
-                        <DropdownMenuItem asChild>
-                          <Button
-                            variant="ghost"
-                            className="w-full justify-start"
-                            onClick={() => handleEdit(session)}
-                          >
-                            <Pencil className="size-4 mr-1" /> Edit
-                          </Button>
-                        </DropdownMenuItem>
-                      )}
-
-                      {!["ongoing", "completed"].includes(session.status) && (
-                        <DropdownMenuItem asChild>
-                          <Button
-                            variant="ghost"
-                            className="w-full justify-start"
-                            onClick={() => handleDelete(session)}
-                          >
-                            <Trash className="size-4 mr-1 text-red-600" />{" "}
-                            Delete
-                          </Button>
-                        </DropdownMenuItem>
-                      )}
+                      <DropdownMenuItem asChild>
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start"
+                          onClick={() => handleEdit(user)}
+                        >
+                          <Pencil className="size-4 mr-1" /> Edit
+                        </Button>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start text-red-600"
+                          onClick={() => handleDelete(user)}
+                        >
+                          <Trash className="size-4 mr-1" /> Delete
+                        </Button>
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
@@ -202,21 +188,22 @@ export default function TableSession({ data, loading }: Props) {
         </Pagination>
       )}
 
-      {/* View, Edit, Delete Modals */}
-      <ViewSession
+      {/* MODALS */}
+      <ViewUser
         open={viewOpen}
         onClose={() => setViewOpen(false)}
-        session={selectedSession}
+        user={selectedUser}
       />
-      <EditSession
+
+      <EditUser
         open={editOpen}
         onClose={() => setEditOpen(false)}
-        session={selectedSession}
+        user={selectedUser}
       />
-      <DeleteSession
+      <DeleteUser
         open={deleteOpen}
         onClose={() => setDeleteOpen(false)}
-        session={selectedSession}
+        user={selectedUser}
       />
     </div>
   );

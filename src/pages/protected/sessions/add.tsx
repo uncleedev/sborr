@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -36,6 +35,9 @@ const sessionSchema = z.object({
   time: z.string().min(1, "Time is required"),
   venue: z.string().optional(),
   description: z.string().optional(),
+  selectedDocs: z.array(z.string()).refine((arr) => arr.length > 0, {
+    message: "Please select at least one document",
+  }),
 });
 
 type FormValues = z.infer<typeof sessionSchema>;
@@ -44,12 +46,12 @@ export default function AddSession() {
   const { handleAddSession } = useSession();
   const { forReviewDocuments } = useDocument();
 
-  const [selectedDocs, setSelectedDocs] = useState<string[]>([]);
-
   const {
     handleSubmit,
     control,
     register,
+    setValue,
+    watch,
     formState: { errors, isSubmitting },
     reset,
   } = useForm<FormValues>({
@@ -60,13 +62,18 @@ export default function AddSession() {
       time: "",
       venue: "",
       description: "",
+      selectedDocs: [],
     },
   });
 
+  const selectedDocs = watch("selectedDocs");
+
   const handleCheckbox = (id: string) => {
-    setSelectedDocs((prev) =>
-      prev.includes(id) ? prev.filter((d) => d !== id) : [...prev, id]
-    );
+    const current = selectedDocs || [];
+    const updated = current.includes(id)
+      ? current.filter((d) => d !== id)
+      : [...current, id];
+    setValue("selectedDocs", updated);
   };
 
   const onSubmit = async (data: FormValues) => {
@@ -80,15 +87,14 @@ export default function AddSession() {
       status: "scheduled",
     };
 
-    const agendas: AgendaCreate[] = selectedDocs.map((docId) => ({
+    const agendas: AgendaCreate[] = data.selectedDocs.map((docId) => ({
       document_id: docId,
-      session_id: "", // sessionService will fill this after inserting session
+      session_id: "",
     }));
 
     const success = await handleAddSession(newSession, agendas);
     if (success) {
       reset();
-      setSelectedDocs([]);
     }
   };
 
@@ -180,12 +186,17 @@ export default function AddSession() {
                 <div key={doc.id} className="flex items-center space-x-2">
                   <input
                     type="checkbox"
-                    checked={selectedDocs.includes(doc.id)}
+                    checked={selectedDocs?.includes(doc.id)}
                     onChange={() => handleCheckbox(doc.id)}
                   />
                   <span>{doc.title}</span>
                 </div>
               ))}
+              {errors.selectedDocs && (
+                <span className="text-destructive text-sm">
+                  {errors.selectedDocs.message}
+                </span>
+              )}
             </div>
           </div>
 
@@ -195,7 +206,7 @@ export default function AddSession() {
             </DialogClose>
 
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Save..." : "Save"}
+              {isSubmitting ? "Saving..." : "Save"}
             </Button>
           </DialogFooter>
         </form>

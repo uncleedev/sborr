@@ -132,4 +132,48 @@ export const sessionService = {
 
     return sessionData as Session[];
   },
+
+  /* ---------- REAL-TIME SUBSCRIPTION ---------- */
+  subscribeToSessions(
+    callback: (payload: {
+      table: "sessions" | "session_documents";
+      eventType: "INSERT" | "UPDATE" | "DELETE";
+      new: any;
+      old: any;
+    }) => void
+  ) {
+    const sessionChannel = supabase
+      .channel("sessions-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "sessions" },
+        (payload) => {
+          callback({
+            table: "sessions",
+            eventType: payload.eventType as "INSERT" | "UPDATE" | "DELETE",
+            new: payload.new,
+            old: payload.old,
+          });
+        }
+      )
+      .subscribe();
+
+    const agendaChannel = supabase
+      .channel("session-documents-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "session_documents" },
+        (payload) => {
+          callback({
+            table: "session_documents",
+            eventType: payload.eventType as "INSERT" | "UPDATE" | "DELETE",
+            new: payload.new,
+            old: payload.old,
+          });
+        }
+      )
+      .subscribe();
+
+    return { sessionChannel, agendaChannel };
+  },
 };

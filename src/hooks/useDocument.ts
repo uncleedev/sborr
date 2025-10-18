@@ -3,6 +3,7 @@ import { useDocumentStore } from "@/stores/document-store";
 import {
   Document,
   DocumentCreate,
+  DocumentStatus,
   DocumentUpdate,
 } from "@/types/document-type";
 import { toast } from "sonner";
@@ -77,6 +78,20 @@ export const useDocument = () => {
     }
   };
 
+  const handleDocumentStatus = async (
+    id: string,
+    status: DocumentStatus
+  ): Promise<boolean> => {
+    try {
+      await updateDocument(id, { status: status });
+      toast.success("Successfully updated document status");
+      return true;
+    } catch (error: any) {
+      toast.error(error);
+      return false;
+    }
+  };
+
   return {
     documents,
     loading,
@@ -85,5 +100,6 @@ export const useDocument = () => {
     handleAddDocument,
     handleEditDocument,
     handleDeleteDocument,
+    handleDocumentStatus,
   };
 };

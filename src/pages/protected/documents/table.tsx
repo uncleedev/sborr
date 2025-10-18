@@ -103,57 +103,65 @@ export default function TableDocument({ data, loading }: Props) {
               </TableCell>
             </TableRow>
           ) : (
-            paginatedData.map((doc) => (
-              <TableRow key={doc.id}>
-                <TableCell>{doc.title}</TableCell>
-                <TableCell>{doc.author_name}</TableCell>
-                <TableCell className="capitalize">{doc.type}</TableCell>
-                <TableCell>{doc.series}</TableCell>
-                <TableCell className="capitalize">{doc.status}</TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem asChild>
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start"
-                          onClick={() => handleView(doc)}
-                        >
-                          <Eye className="size-4 mr-1" />
-                          View
-                        </Button>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start"
-                          onClick={() => handleEdit(doc)}
-                        >
-                          <Pencil className="size-4 mr-1" />
-                          Edit
-                        </Button>
-                      </DropdownMenuItem>
+            paginatedData.map((doc) => {
+              const isLocked = doc.status === "in_session";
 
-                      <DropdownMenuItem asChild>
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start"
-                          onClick={() => handleDelete(doc)}
-                        >
-                          <Trash className="size-4 mr-1 text-red-600" />
-                          Delete
+              return (
+                <TableRow key={doc.id}>
+                  <TableCell>{doc.title}</TableCell>
+                  <TableCell>{doc.author_name}</TableCell>
+                  <TableCell className="capitalize">{doc.type}</TableCell>
+                  <TableCell>{doc.series}</TableCell>
+                  <TableCell>{doc.status.replace("_", " ")}</TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal />
                         </Button>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {/* View */}
+                        <DropdownMenuItem asChild>
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start"
+                            onClick={() => handleView(doc)}
+                          >
+                            <Eye className="size-4 mr-1" />
+                            View
+                          </Button>
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem asChild disabled={isLocked}>
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start"
+                            onClick={() => handleEdit(doc)}
+                            disabled={isLocked}
+                          >
+                            <Pencil className="size-4 mr-1" />
+                            Edit
+                          </Button>
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem asChild disabled={isLocked}>
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start text-red-600"
+                            onClick={() => handleDelete(doc)}
+                            disabled={isLocked}
+                          >
+                            <Trash className="size-4 mr-1" />
+                            Delete
+                          </Button>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              );
+            })
           )}
         </TableBody>
       </Table>

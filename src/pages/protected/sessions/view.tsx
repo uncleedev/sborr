@@ -11,6 +11,16 @@ import { Button } from "@/components/ui/button";
 import { useSession } from "@/hooks/useSession";
 import { Session } from "@/types/session-type";
 import { formatDateWithOrdinal } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useDocument } from "@/hooks/useDocument";
+import { DocumentStatus } from "@/types/document-type";
 
 interface Props {
   open: boolean;
@@ -20,17 +30,28 @@ interface Props {
 
 export default function ViewSession({ open, onClose, session }: Props) {
   const { getAgendaBySchedule } = useSession();
+  const { handleDocumentStatus } = useDocument();
 
   if (!session) return null;
 
   const agendas = getAgendaBySchedule(session.id);
+
+  const handleStatusChange = async (
+    agendaId: string,
+    newStatus: DocumentStatus
+  ) => {
+    await handleDocumentStatus(agendaId, newStatus);
+  };
+
+  const canEditStatus =
+    session.status === "ongoing" || session.status === "completed";
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>View Session</DialogTitle>
-          <DialogDescription>View details of this session </DialogDescription>
+          <DialogDescription>View details of this session</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 mt-2">
@@ -66,9 +87,44 @@ export default function ViewSession({ open, onClose, session }: Props) {
                 No agendas found.
               </p>
             ) : (
-              <ul className="list-disc list-inside mt-1">
+              <ul className="space-y-2">
                 {agendas.map((agenda) => (
-                  <li key={agenda.id}>{agenda.title}</li>
+                  <li
+                    key={agenda.id}
+                    className="flex items-center justify-between gap-4 border rounded-lg p-3"
+                  >
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium truncate">
+                        {agenda.title}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        Current:{" "}
+                        {(
+                          agenda.status.charAt(0).toUpperCase() +
+                          agenda.status.slice(1)
+                        ).replace("_", " ")}
+                      </span>
+                    </div>
+
+                    {canEditStatus && (
+                      <Select
+                        defaultValue={agenda.status || "approved"}
+                        onValueChange={(value) =>
+                          handleStatusChange(agenda.id, value as DocumentStatus)
+                        }
+                      >
+                        <SelectTrigger className="w-[140px]">
+                          <SelectValue placeholder="Select Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectItem value="approved">Approved</SelectItem>
+                            <SelectItem value="rejected">Rejected</SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </li>
                 ))}
               </ul>
             )}
@@ -77,7 +133,7 @@ export default function ViewSession({ open, onClose, session }: Props) {
 
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant={"outline"}>Close</Button>
+            <Button variant="outline">Close</Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>
