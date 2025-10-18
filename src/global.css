@@ -229,7 +229,7 @@ body {
   }
 
   h3 {
-    @apply text-base md:text-lg lg:text-xl font-semibold;
+    @apply text-base md:text-lg font-semibold;
   }
 
   h4 {
