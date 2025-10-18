@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 export const useAuth = () => {
   const navigate = useNavigate();
-  const { session, signin, setSession, loading, invite } = useAuthStore();
+  const { session, signin, setSession, loading } = useAuthStore();
 
   const hasSession = !!session;
 
@@ -25,19 +25,19 @@ export const useAuth = () => {
     }
   };
 
-  const handleInvite = async (
-    user: UserCreate & { password: string }
-  ): Promise<boolean> => {
-    try {
-      await invite(user);
-      toast.success("Successfully invited a user");
+  // const handleInvite = async (
+  //   user: UserCreate & { password: string }
+  // ): Promise<boolean> => {
+  //   try {
+  //     await invite(user);
+  //     toast.success("Successfully invited a user");
 
-      return true;
-    } catch (error: any) {
-      toast.error(error);
-      return false;
-    }
-  };
+  //     return true;
+  //   } catch (error: any) {
+  //     toast.error(error);
+  //     return false;
+  //   }
+  // };
 
   useEffect(() => {
     const initSession = async () => {
@@ -52,6 +52,5 @@ export const useAuth = () => {
     loading,
     hasSession,
     handleSignin,
-    handleInvite,
   };
 };

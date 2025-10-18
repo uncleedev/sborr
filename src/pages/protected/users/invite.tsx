@@ -43,7 +43,7 @@ const userSchema = z.object({
 type UserForm = z.infer<typeof userSchema>;
 
 export default function InviteUser() {
-  const { handleInvite, loading } = useAuth();
+  const { loading } = useAuth();
 
   const {
     register,
@@ -56,16 +56,15 @@ export default function InviteUser() {
   });
 
   const onSubmit = async (data: UserForm) => {
-    const { password, ...userData } = data;
-
-    const success = await handleInvite({
-      ...userData,
-      password,
-    });
-
-    if (success) {
-      reset();
-    }
+    console.log(data);
+    // const { password, ...userData } = data;
+    // const success = await handleInvite({
+    //   ...userData,
+    //   password,
+    // });
+    // if (success) {
+    //   reset();
+    // }
   };
 
   return (

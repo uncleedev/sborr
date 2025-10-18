@@ -10,7 +10,7 @@ interface AuthState {
 
   signin: (email: string, password: string) => Promise<void>;
   setSession: () => Promise<void>;
-  invite: (user: UserCreate & { password: string }) => Promise<void>;
+  // invite: (user: UserCreate & { password: string }) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -44,16 +44,16 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  invite: async (user) => {
-    set({ loading: true, error: null });
-    try {
-      const data = await authService.inviteUser(user);
-      console.log("User invited:", data);
-    } catch (err: any) {
-      set({ error: err.message });
-      throw err.message;
-    } finally {
-      set({ loading: false });
-    }
-  },
+  // invite: async (user) => {
+  //   set({ loading: true, error: null });
+  //   try {
+  //     const data = await authService.inviteUser(user);
+  //     console.log("User invited:", data);
+  //   } catch (err: any) {
+  //     set({ error: err.message });
+  //     throw err.message;
+  //   } finally {
+  //     set({ loading: false });
+  //   }
+  // },
 }));

@@ -21,13 +21,13 @@ export const authService = {
     return data;
   },
 
-  async inviteUser(user: UserCreate & { password: string }) {
-    const { data, error } = await supabase.functions.invoke("invite-user", {
-      body: user,
-    });
+  // async inviteUser(user: UserCreate & { password: string }) {
+  //   const { data, error } = await supabase.functions.invoke("invite-user", {
+  //     body: user,
+  //   });
 
-    if (error) throw new Error(error.message || "Failed to invite user");
-    if (data?.error) throw new Error(data.error);
-    return data;
-  },
+  //   if (error) throw new Error(error.message || "Failed to invite user");
+  //   if (data?.error) throw new Error(data.error);
+  //   return data;
+  // },
 };
