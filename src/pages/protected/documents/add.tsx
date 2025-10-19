@@ -32,12 +32,18 @@ import {
 } from "@/constants/select-item";
 import { FileInput } from "@/components/shared/file-input";
 import { AddDocumentForm, addDocumentSchema } from "@/schemas/document-schema";
-import { DocumentStatus, DocumentType } from "@/types/document-type";
+import {
+  DocumentCreate,
+  DocumentStatus,
+  DocumentType,
+} from "@/types/document-type";
 import { useDocument } from "@/hooks/useDocument";
+import { useUser } from "@/hooks/useUser";
 
 export default function AddDocument() {
   const [status, setStatus] = useState("");
   const { handleAddDocument } = useDocument();
+  const { loggedOnUser } = useUser();
 
   const form = useForm<AddDocumentForm>({
     resolver: zodResolver(addDocumentSchema),
@@ -64,8 +70,14 @@ export default function AddDocument() {
   const selectedStatus = watch("status");
 
   const onSubmit = async (data: AddDocumentForm) => {
-    const { file, ...payload } = data;
-    const success = await handleAddDocument(payload, file ?? undefined);
+    const { file, ...rest } = data;
+
+    const payload: DocumentCreate = {
+      ...rest,
+      created_by: loggedOnUser?.id ?? "",
+    };
+
+    const success = await handleAddDocument(payload, data.file ?? undefined);
     if (success) reset();
   };
 

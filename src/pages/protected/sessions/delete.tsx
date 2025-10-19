@@ -12,6 +12,7 @@ import {
 import { useSession } from "@/hooks/useSession";
 import { Session } from "@/types/session-type";
 import { formatDateWithOrdinal } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface Props {
   open: boolean;
@@ -20,48 +21,72 @@ interface Props {
 }
 
 export default function DeleteSession({ open, onClose, session }: Props) {
-  if (!session) return null;
-
   const { handleDeleteSession } = useSession();
   const {
     handleSubmit,
     formState: { isSubmitting },
+    reset,
   } = useForm();
 
   const onSubmit = async () => {
-    const success = await handleDeleteSession(session.id);
-    if (success) onClose();
+    if (!session) return;
+
+    try {
+      const success = await handleDeleteSession(session.id);
+      if (success) {
+        toast.success("Session deleted successfully.");
+        reset();
+        onClose();
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete session.");
+    }
+  };
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen) {
+      reset();
+      onClose();
+    }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="space-y-4 lg:space-y-6"
-        >
-          <DialogHeader>
-            <DialogTitle>Delete Session</DialogTitle>
-            <DialogDescription>
-              You are about to delete this session scheduled on{" "}
-              <strong>{formatDateWithOrdinal(session.scheduled_at)}</strong>.
-              <br />
-              <span className="text-red-500 font-semibold">
-                This action cannot be undone!
-              </span>
-            </DialogDescription>
-          </DialogHeader>
+        {session ? (
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-4 lg:space-y-6"
+          >
+            <DialogHeader>
+              <DialogTitle>Delete Session</DialogTitle>
+              <DialogDescription>
+                You are about to delete this session scheduled on{" "}
+                <strong>{formatDateWithOrdinal(session.scheduled_at)}</strong>.
+                <br />
+                <span className="text-red-500 font-semibold">
+                  This action cannot be undone!
+                </span>
+              </DialogDescription>
+            </DialogHeader>
 
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Close</Button>
-            </DialogClose>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline" disabled={isSubmitting}>
+                  Cancel
+                </Button>
+              </DialogClose>
 
-            <Button type="submit" variant="destructive" disabled={isSubmitting}>
-              {isSubmitting ? "Deleting..." : "Delete"}
-            </Button>
-          </DialogFooter>
-        </form>
+              <Button
+                type="submit"
+                variant="destructive"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Deleting..." : "Delete Session"}
+              </Button>
+            </DialogFooter>
+          </form>
+        ) : null}
       </DialogContent>
     </Dialog>
   );

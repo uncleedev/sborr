@@ -34,8 +34,8 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
   createDocument: async (document, file) => {
     set({ loading: true, error: null });
     try {
-      const data = await documentService.createDocument(document, file);
-      set((state) => ({ documents: [...data, ...state.documents] }));
+      await documentService.createDocument(document, file);
+      get().getAllDocuments();
     } catch (err: any) {
       set({ error: err.message });
       throw err.message;

@@ -22,7 +22,8 @@ export default function Topbar() {
   return (
     <Card className="w-full flex-row items-center justify-between p-4">
       <h3 className="hidden md:block text-muted-foreground">
-        SBORR / <span className="text-foreground uppercase">{activePath}</span>
+        SBORR /{" "}
+        <span className="text-foreground uppercase">{activePath.slice(1)}</span>
       </h3>
 
       {/* MOBILE LOGO */}

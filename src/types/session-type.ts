@@ -10,6 +10,7 @@ export interface Session {
   venue?: string;
   description?: string;
 
+  created_by: string;
   created_at: string;
 }
 

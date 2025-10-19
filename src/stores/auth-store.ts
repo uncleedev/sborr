@@ -6,39 +6,54 @@ interface AuthState {
   session: Session | null;
   loading: boolean;
   error: string | null;
+  initialized: boolean;
 
   signin: (email: string, password: string) => Promise<void>;
-  setSession: () => Promise<void>;
+  initializeSession: () => Promise<void>;
+  signout: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   session: null,
   loading: false,
   error: null,
+  initialized: false,
 
   signin: async (email, password) => {
     set({ loading: true, error: null });
     try {
       const data = await authService.signin(email, password);
-      set({ session: data.session });
+      set({ session: data.session || null });
     } catch (err: any) {
-      set({ error: err.message });
-      throw err.message;
+      set({ error: err.message, session: null });
+      throw err;
     } finally {
       set({ loading: false });
     }
   },
 
-  setSession: async () => {
+  initializeSession: async () => {
     set({ loading: true, error: null });
     try {
       const data = await authService.getSession();
-      set({ session: data.session });
+      set({ session: data.session || null });
     } catch (err: any) {
-      set({ error: err.message });
-      throw err.message;
+      console.error("Initialize session failed:", err);
+      set({ session: null, error: err.message || "Failed to get session" });
     } finally {
-      set({ loading: false });
+      set({ loading: false, initialized: true });
+    }
+  },
+
+  signout: async () => {
+    set({ loading: true, error: null });
+    try {
+      await authService.signout();
+      // Explicitly clear the session
+      set({ session: null, loading: false });
+    } catch (err: any) {
+      set({ error: err.message || "Failed to sign out", loading: false });
+      throw err;
     }
   },
 }));

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,14 +21,14 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus } from "lucide-react";
+import { Plus, Camera } from "lucide-react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useUser } from "@/hooks/useUser";
 import { UserCreate } from "@/types/user-type";
 
-// Validation schema
+/* ✅ Validation Schema */
 const userSchema = z.object({
   firstname: z.string().min(1, "First name is required"),
   lastname: z.string().min(1, "Last name is required"),
@@ -42,6 +43,8 @@ type FormValues = z.infer<typeof userSchema>;
 
 export default function AddUser() {
   const { handleAddUser } = useUser();
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const {
     handleSubmit,
@@ -60,6 +63,16 @@ export default function AddUser() {
     },
   });
 
+  /* ✅ File Upload + Preview */
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAvatarFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
+  /* ✅ Submit Handler */
   const onSubmit = async (data: FormValues) => {
     const newUser: UserCreate = {
       firstname: data.firstname,
@@ -69,9 +82,12 @@ export default function AddUser() {
       bio: data.bio || "",
     };
 
-    const success = await handleAddUser(newUser);
+    const success = await handleAddUser(newUser, avatarFile ?? undefined);
+
     if (success) {
       reset();
+      setAvatarFile(null);
+      setPreviewUrl(null);
     }
   };
 
@@ -87,12 +103,43 @@ export default function AddUser() {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Add User</DialogTitle>
-          <DialogDescription>Add a new system user</DialogDescription>
+          <DialogDescription>Add a new system user.</DialogDescription>
         </DialogHeader>
 
         <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
+          {/* ✅ Avatar Upload */}
+          <div className="flex flex-col items-center space-y-3">
+            <div className="relative">
+              <img
+                src={
+                  previewUrl ||
+                  "https://ui-avatars.com/api/?name=New+User&background=random"
+                }
+                alt="Avatar Preview"
+                className="w-24 h-24 rounded-full object-cover border"
+              />
+              <Button
+                type="button"
+                size="icon"
+                variant="secondary"
+                className="absolute bottom-0 right-0 rounded-full"
+                onClick={() => document.getElementById("avatarUpload")?.click()}
+              >
+                <Camera className="w-4 h-4" />
+              </Button>
+            </div>
+
+            <input
+              id="avatarUpload"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleFileChange}
+            />
+          </div>
+
+          {/* ✅ Form Fields */}
           <div className="space-y-4">
-            {/* First Name */}
             <div className="space-y-2">
               <Label>First Name</Label>
               <Input {...register("firstname")} />
@@ -103,7 +150,6 @@ export default function AddUser() {
               )}
             </div>
 
-            {/* Last Name */}
             <div className="space-y-2">
               <Label>Last Name</Label>
               <Input {...register("lastname")} />
@@ -114,7 +160,6 @@ export default function AddUser() {
               )}
             </div>
 
-            {/* Email */}
             <div className="space-y-2">
               <Label>Email</Label>
               <Input type="email" {...register("email")} />
@@ -125,7 +170,6 @@ export default function AddUser() {
               )}
             </div>
 
-            {/* Role */}
             <div className="space-y-2">
               <Label>Role</Label>
               <Controller
@@ -155,7 +199,6 @@ export default function AddUser() {
               )}
             </div>
 
-            {/* Bio */}
             <div className="space-y-2">
               <Label>Bio</Label>
               <Textarea

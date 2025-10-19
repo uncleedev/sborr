@@ -9,10 +9,12 @@ interface UserState {
   error: string | null;
   channel?: ReturnType<typeof supabase.channel>;
 
-  createUser: (user: UserCreate) => Promise<void>;
+  createUser: (user: UserCreate, avatarFile?: File) => Promise<void>;
   getAllUsers: () => Promise<void>;
   updateUser: (id: string, updates: Partial<UserCreate>) => Promise<void>;
-  deleteUser: (id: string) => Promise<void>;
+
+  uploadAvatar: (userId: string, file: File) => Promise<void>;
+  deleteAvatar: (userId: string, avatar_path?: string | null) => Promise<void>;
 
   subscribe: () => void;
   unsubscribe: () => void;
@@ -24,30 +26,30 @@ export const useUserStore = create<UserState>((set, get) => ({
   error: null,
   channel: undefined,
 
-  /* ---------- CREATE ---------- */
-  createUser: async (user) => {
+  /* ---------- CREATE (with avatar upload before insert) ---------- */
+  createUser: async (user, avatarFile) => {
     set({ loading: true, error: null });
     try {
-      const data = await userService.createUser(user);
-      set((state) => ({
-        users: [...data, ...state.users],
-      }));
+      await userService.createUser(user, avatarFile);
+      await get().getAllUsers(); // refresh after creation
     } catch (err: any) {
-      set({ error: err.message });
+      console.error("Create User Error:", err);
+      set({ error: err.message || "Failed to create user" });
       throw err;
     } finally {
       set({ loading: false });
     }
   },
 
-  /* ---------- READ ---------- */
+  /* ---------- READ (get all users) ---------- */
   getAllUsers: async () => {
     set({ loading: true, error: null });
     try {
       const data = await userService.getAllUsers();
       set({ users: data });
     } catch (err: any) {
-      set({ error: err.message });
+      console.error("Get All Users Error:", err);
+      set({ error: err.message || "Failed to fetch users" });
       throw err;
     } finally {
       set({ loading: false });
@@ -63,23 +65,65 @@ export const useUserStore = create<UserState>((set, get) => ({
         users: state.users.map((u) => (u.id === id ? data[0] : u)),
       }));
     } catch (err: any) {
-      set({ error: err.message });
+      console.error("Update User Error:", err);
+      set({ error: err.message || "Failed to update user" });
       throw err;
     } finally {
       set({ loading: false });
     }
   },
 
-  /* ---------- DELETE ---------- */
-  deleteUser: async (id) => {
+  /* ---------- AVATAR UPLOAD ---------- */
+  uploadAvatar: async (userId, file) => {
     set({ loading: true, error: null });
     try {
-      await userService.deleteUser(id);
+      // Reuse the create logic for consistent upload handling
+      const fileExt = file.name.split(".").pop();
+      const filePath = `avatars/${userId}-${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, file, {
+          cacheControl: "3600",
+          upsert: true,
+        });
+
+      if (uploadError) throw new Error(uploadError.message);
+
+      const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
+      const avatar_url = data.publicUrl;
+      const avatar_path = filePath;
+
+      await userService.updateUser(userId, { avatar_url, avatar_path });
+
       set((state) => ({
-        users: state.users.filter((u) => u.id !== id),
+        users: state.users.map((u) =>
+          u.id === userId ? { ...u, avatar_url, avatar_path } : u
+        ),
       }));
     } catch (err: any) {
-      set({ error: err.message });
+      console.error("Upload Avatar Error:", err);
+      set({ error: err.message || "Failed to upload avatar" });
+      throw err;
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  /* ---------- AVATAR DELETE ---------- */
+  deleteAvatar: async (userId, avatar_path) => {
+    set({ loading: true, error: null });
+    try {
+      await userService.deleteAvatar(userId, avatar_path || null);
+
+      set((state) => ({
+        users: state.users.map((u) =>
+          u.id === userId ? { ...u, avatar_url: null, avatar_path: null } : u
+        ),
+      }));
+    } catch (err: any) {
+      console.error("Delete Avatar Error:", err);
+      set({ error: err.message || "Failed to delete avatar" });
       throw err;
     } finally {
       set({ loading: false });
@@ -101,11 +145,13 @@ export const useUserStore = create<UserState>((set, get) => ({
                 updatedUsers.unshift(newUser);
               }
               break;
+
             case "UPDATE":
               updatedUsers = updatedUsers.map((u) =>
                 u.id === newUser.id ? newUser : u
               );
               break;
+
             case "DELETE":
               updatedUsers = updatedUsers.filter((u) => u.id !== oldUser.id);
               break;
@@ -119,6 +165,7 @@ export const useUserStore = create<UserState>((set, get) => ({
     set({ channel });
   },
 
+  /* ---------- UNSUBSCRIBE ---------- */
   unsubscribe: () => {
     const channel = get().channel;
     if (channel) {

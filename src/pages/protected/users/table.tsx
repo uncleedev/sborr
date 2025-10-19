@@ -140,10 +140,10 @@ export default function TableUser({ data, loading }: Props) {
                       <DropdownMenuItem asChild>
                         <Button
                           variant="ghost"
-                          className="w-full justify-start text-red-600"
+                          className="w-full justify-start "
                           onClick={() => handleDelete(user)}
                         >
-                          <Trash className="size-4 mr-1" /> Delete
+                          <Trash className="size-4 mr-1 text-red-600" /> Delete
                         </Button>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
