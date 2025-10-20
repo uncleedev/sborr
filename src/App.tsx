@@ -48,12 +48,8 @@ export default function App() {
             <Route path="users" element={<UserPage />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="settings" element={<SettingPage />} />
-
-            <Route
-              path="*"
-              element={<Navigate to={"/protected/dashboard"} />}
-            />
           </Route>
+          <Route path="*" element={<Navigate to={"/protected/dashboard"} />} />
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />
