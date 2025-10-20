@@ -1,4 +1,3 @@
-import Logo from "@/components/shared/logo";
 import { PasswordInput } from "@/components/shared/password-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
