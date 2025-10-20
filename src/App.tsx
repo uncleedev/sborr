@@ -8,20 +8,42 @@ import ProtectedRoute from "./routes/protected-route";
 import PublicRoute from "./routes/public-route";
 import SessionPage from "./pages/protected/sessions/Session";
 import UserPage from "./pages/protected/users/User";
+import DashboardPage from "./pages/protected/dashboard/Dashboard";
+import ProfilePage from "./pages/protected/profile/Profile";
+import SettingPage from "./pages/protected/settings/Setting";
+import InitialRoute from "./routes/initial-route";
+import ResetPasswordPage from "./pages/auth/ResetPassword";
+import ForgotPasswordPage from "./pages/auth/ForgotPassword";
+import LayoutAuth from "./pages/auth/LayoutAuth";
 
 export default function App() {
   return (
     <AppRouter>
       <Routes>
         <Route element={<PublicRoute />}>
-          <Route index element={<SigninPage />} />
+          <Route index element={<InitialRoute />} />
+
+          <Route path="auth" element={<LayoutAuth />}>
+            <Route path="/auth/signin" element={<SigninPage />} />
+            <Route
+              path="/auth/reset-password"
+              element={<ResetPasswordPage />}
+            />
+            <Route
+              path="/auth/forgot-password"
+              element={<ForgotPasswordPage />}
+            />
+          </Route>
         </Route>
 
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
+            <Route path="dashboard" element={<DashboardPage />} />
             <Route path="documents" element={<DocumentPage />} />
             <Route path="sessions" element={<SessionPage />} />
             <Route path="users" element={<UserPage />} />
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="settings" element={<SettingPage />} />
           </Route>
         </Route>
       </Routes>

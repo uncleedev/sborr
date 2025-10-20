@@ -32,7 +32,7 @@ export const PasswordInput = React.forwardRef<
         aria-label={show ? "Hide password" : "Show password"}
         tabIndex={-1}
       >
-        {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+        {show ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
       </Button>
     </div>
   );

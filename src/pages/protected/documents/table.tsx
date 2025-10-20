@@ -148,11 +148,11 @@ export default function TableDocument({ data, loading }: Props) {
                         <DropdownMenuItem asChild disabled={isLocked}>
                           <Button
                             variant="ghost"
-                            className="w-full justify-start text-red-600"
+                            className="w-full justify-start "
                             onClick={() => handleDelete(doc)}
                             disabled={isLocked}
                           >
-                            <Trash className="size-4 mr-1" />
+                            <Trash className="size-4 mr-1 text-red-600" />
                             Delete
                           </Button>
                         </DropdownMenuItem>

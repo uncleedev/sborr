@@ -28,6 +28,7 @@ import { useSession } from "@/hooks/useSession";
 import { useDocument } from "@/hooks/useDocument";
 import { SessionCreate, AgendaCreate } from "@/types/session-type";
 import { SELECT_SESSION_TYPE } from "@/constants/select-item";
+import { useUser } from "@/hooks/useUser";
 
 const sessionSchema = z.object({
   type: z.enum(["regular", "special"], { message: "Type is required" }),
@@ -44,6 +45,7 @@ type FormValues = z.infer<typeof sessionSchema>;
 
 export default function AddSession() {
   const { handleAddSession } = useSession();
+  const { loggedOnUser } = useUser();
   const { forReviewDocuments } = useDocument();
 
   const {
@@ -85,6 +87,7 @@ export default function AddSession() {
       venue: data.venue,
       description: data.description,
       status: "scheduled",
+      created_by: loggedOnUser?.id ?? "",
     };
 
     const agendas: AgendaCreate[] = data.selectedDocs.map((docId) => ({

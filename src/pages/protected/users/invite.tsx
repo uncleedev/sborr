@@ -1,5 +1,3 @@
-"use client";
-
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -27,7 +25,8 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { UserPlus } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { authService } from "@/services/auth-service";
+import { toast } from "sonner";
 
 const userSchema = z.object({
   firstname: z.string().min(1, "First name is required"),
@@ -37,34 +36,30 @@ const userSchema = z.object({
   }),
   bio: z.string().optional(),
   email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
 type UserForm = z.infer<typeof userSchema>;
 
 export default function InviteUser() {
-  const { loading } = useAuth();
-
   const {
     register,
     handleSubmit,
     setValue,
     formState: { errors, isSubmitting },
-    reset,
   } = useForm<UserForm>({
     resolver: zodResolver(userSchema),
   });
 
   const onSubmit = async (data: UserForm) => {
-    console.log(data);
-    // const { password, ...userData } = data;
-    // const success = await handleInvite({
-    //   ...userData,
-    //   password,
-    // });
-    // if (success) {
-    //   reset();
-    // }
+    try {
+      const result = await authService.inviteUser(data);
+      console.log("Invite result:", result);
+      toast.success("Successfully invited user");
+    } catch (error: any) {
+      console.error("Invite error:", error);
+      toast.error(error.message || "Failed to invite user");
+    }
   };
 
   return (
@@ -172,8 +167,8 @@ export default function InviteUser() {
             <DialogClose asChild>
               <Button variant="outline">Close</Button>
             </DialogClose>
-            <Button type="submit" disabled={isSubmitting || loading}>
-              {isSubmitting || loading ? "Inviting..." : "Save"}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Inviting..." : "Save"}
             </Button>
           </DialogFooter>
         </form>

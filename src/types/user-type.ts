@@ -12,10 +12,10 @@ export interface User {
   email: string;
   role: UserRole;
   bio?: string;
-
+  avatar_url?: string | null;
+  avatar_path?: string | null;
   created_at: string;
 }
 
 export type UserCreate = Omit<User, "id" | "created_at">;
-
 export type UserUpdate = Partial<UserCreate>;
