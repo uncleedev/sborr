@@ -5,7 +5,7 @@ import { Outlet } from "react-router-dom";
 
 export default function Layout() {
   return (
-    <div className="w-full h-screen flex gap-2 sm:gap-4 p-4">
+    <div className="w-full h-screen flex  p-4">
       {/* Sidebar: fixed height */}
       <Sidebar />
 
