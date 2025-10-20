@@ -63,7 +63,7 @@ export default function Sidebar() {
                   isMenuOpen ? "justify-start" : "justify-center"
                 } ${
                   isActive
-                    ? "text-primary-foreground bg-transparent hover:bg-transparent"
+                    ? "text-white dark:text-black bg-transparent hover:bg-transparent"
                     : "bg-transparent hover:bg-accent"
                 }`}
                 variant="ghost"
