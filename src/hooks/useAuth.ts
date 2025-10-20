@@ -39,11 +39,16 @@ export const useAuth = () => {
     }
   };
 
-  const handleForgotPassword = async (email: string) => {
+  const handleForgotPassword = async (email: string): Promise<boolean> => {
     try {
       await forgotPassword(email);
-      toast.success("");
-    } catch (error) {}
+      toast.success("Successfully sent reset instructions to your email");
+      navigate("/auth/signin");
+      return true;
+    } catch (err: any) {
+      toast.error(err.message);
+      return false;
+    }
   };
 
   useEffect(() => {
@@ -54,6 +59,7 @@ export const useAuth = () => {
     session,
     loading,
     hasSession,
+    handleForgotPassword,
     handleSignin,
     handleSignout,
     initialized,
