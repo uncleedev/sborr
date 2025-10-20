@@ -1,5 +1,5 @@
 import { AppRouter } from "./routes/app-router";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 
 import SigninPage from "./pages/auth/Signin";
 import DocumentPage from "./pages/protected/documents/Document";
@@ -15,6 +15,8 @@ import InitialRoute from "./routes/initial-route";
 import ResetPasswordPage from "./pages/auth/ResetPassword";
 import ForgotPasswordPage from "./pages/auth/ForgotPassword";
 import LayoutAuth from "./pages/auth/LayoutAuth";
+import NotFoundAuth from "./pages/auth/NotFound";
+import NotFoundPage from "./pages/home/NotFound";
 
 export default function App() {
   return (
@@ -33,19 +35,28 @@ export default function App() {
               path="/auth/forgot-password"
               element={<ForgotPasswordPage />}
             />
+
+            <Route path="*" element={<NotFoundAuth />} />
           </Route>
         </Route>
 
         <Route element={<ProtectedRoute />}>
-          <Route element={<Layout />}>
+          <Route path="protected" element={<Layout />}>
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="documents" element={<DocumentPage />} />
             <Route path="sessions" element={<SessionPage />} />
             <Route path="users" element={<UserPage />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="settings" element={<SettingPage />} />
+
+            <Route
+              path="*"
+              element={<Navigate to={"/protected/dashboard"} />}
+            />
           </Route>
         </Route>
+
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </AppRouter>
   );

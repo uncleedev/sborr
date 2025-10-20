@@ -1,8 +1,9 @@
 import { useAuth } from "@/hooks/useAuth";
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 
 export default function PublicRoute() {
   const { hasSession, initialized } = useAuth();
+  const location = useLocation();
 
   if (!initialized) {
     return (
@@ -12,8 +13,10 @@ export default function PublicRoute() {
     );
   }
 
-  if (hasSession) {
-    return <Navigate to="/documents" replace />;
+  const isHome = location.pathname === "/";
+
+  if (hasSession && !isHome) {
+    return <Navigate to="/protected/documents" replace />;
   }
 
   return <Outlet />;

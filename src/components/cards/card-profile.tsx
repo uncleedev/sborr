@@ -82,7 +82,7 @@ export default function CardProfile() {
         <DropdownMenuGroup>
           <DropdownMenuItem
             className="flex items-center gap-2 p-2.5 cursor-pointer"
-            onClick={() => navigate("/profile")}
+            onClick={() => navigate("/protected/profile")}
           >
             <UserIcon className="h-4 w-4" />
             <span>Profile</span>
@@ -92,7 +92,7 @@ export default function CardProfile() {
 
           <DropdownMenuItem
             className="flex items-center gap-2 p-2.5 cursor-pointer"
-            onClick={() => navigate("/settings")}
+            onClick={() => navigate("/protected/settings")}
           >
             <Settings className="h-4 w-4" />
             <span>Settings</span>

@@ -21,7 +21,7 @@ export const useAuth = () => {
     try {
       await signin(email, password);
       toast.success("Successfully signed in.");
-      navigate("/dashboard");
+      navigate("/protected/dashboard");
       return true;
     } catch (err: any) {
       toast.error(err.message || "Failed to sign in.");

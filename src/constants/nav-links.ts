@@ -4,21 +4,21 @@ export const NAV_LINKS = [
   {
     label: "Dashboard",
     icon: LayoutDashboard,
-    path: "/dashboard",
+    path: "/protected/dashboard",
   },
   {
     label: "Documents",
     icon: FileText,
-    path: "/documents",
+    path: "/protected/documents",
   },
   {
     label: "Sessions",
     icon: Calendar,
-    path: "/sessions",
+    path: "/protected/sessions",
   },
   {
     label: "Users",
     icon: Users,
-    path: "/users",
+    path: "/protected/users",
   },
 ];
