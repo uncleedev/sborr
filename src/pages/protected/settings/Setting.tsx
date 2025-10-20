@@ -96,14 +96,15 @@ export default function SettingPage() {
 
   return (
     <div className="grid grid-cols-5 gap-4 h-full">
-      <Card className="col-span-3 min-h-screen">
+      <Card className="col-span-3 ">
         <header className="flex justify-between">
           <div>
             <h3 className="text-lg font-semibold">Activity Log</h3>
             <p className="text-sm text-muted-foreground">see all logs</p>
           </div>
         </header>
-        <CardContent className="flex flex-col gap-3 overflow-y-auto">
+
+        <div className="flex flex-col gap-4">
           {logs.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               No activity logs found.
@@ -118,7 +119,7 @@ export default function SettingPage() {
               />
             ))
           )}
-        </CardContent>
+        </div>
       </Card>
 
       <div className="col-span-2 space-y-4">

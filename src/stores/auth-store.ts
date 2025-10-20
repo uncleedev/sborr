@@ -11,6 +11,7 @@ interface AuthState {
   signin: (email: string, password: string) => Promise<void>;
   initializeSession: () => Promise<void>;
   signout: () => Promise<void>;
+  forgotPassword: (email: string) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -49,11 +50,22 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ loading: true, error: null });
     try {
       await authService.signout();
-      // Explicitly clear the session
       set({ session: null, loading: false });
     } catch (err: any) {
       set({ error: err.message || "Failed to sign out", loading: false });
       throw err;
+    }
+  },
+
+  forgotPassword: async (email) => {
+    set({ loading: true, error: null });
+    try {
+      await authService.forgotPassword(email);
+    } catch (err: any) {
+      set({ error: err.message || "Faile to forgot password" });
+      throw err;
+    } finally {
+      set({ loading: false });
     }
   },
 }));

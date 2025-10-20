@@ -50,7 +50,7 @@ export const useUser = () => {
     async (user: UserCreate, avatarFile?: File): Promise<boolean> => {
       try {
         await createUser(user, avatarFile);
-        toast.success("✅ User successfully added");
+        toast.success("User successfully added");
         return true;
       } catch (err: any) {
         toast.error(err.message || "Failed to add user");
@@ -65,7 +65,7 @@ export const useUser = () => {
     async (id: string, newUser: UserUpdate): Promise<boolean> => {
       try {
         await updateUser(id, newUser);
-        toast.success("✅ User information updated");
+        toast.success("User information updated");
         return true;
       } catch (err: any) {
         toast.error(err.message || "Failed to update user");
@@ -80,7 +80,7 @@ export const useUser = () => {
     async (userId: string, file: File) => {
       try {
         await uploadAvatar(userId, file);
-        toast.success("🖼️ Avatar updated successfully");
+        toast.success("Avatar updated successfully");
       } catch (err: any) {
         toast.error(err.message || "Failed to upload avatar");
       }
@@ -93,7 +93,7 @@ export const useUser = () => {
     async (userId: string, avatar_path?: string | null) => {
       try {
         await deleteAvatar(userId, avatar_path);
-        toast.success("🗑️ Avatar removed successfully");
+        toast.success("Avatar removed successfully");
       } catch (err: any) {
         toast.error(err.message || "Failed to delete avatar");
       }

@@ -5,8 +5,15 @@ import { useAuthStore } from "@/stores/auth-store";
 
 export const useAuth = () => {
   const navigate = useNavigate();
-  const { session, loading, initialized, signin, initializeSession, signout } =
-    useAuthStore();
+  const {
+    session,
+    loading,
+    initialized,
+    signin,
+    initializeSession,
+    signout,
+    forgotPassword,
+  } = useAuthStore();
 
   const hasSession = !!session;
 
@@ -30,6 +37,13 @@ export const useAuth = () => {
     } catch (err: any) {
       toast.error(err.message || "Failed to sign out.");
     }
+  };
+
+  const handleForgotPassword = async (email: string) => {
+    try {
+      await forgotPassword(email);
+      toast.success("");
+    } catch (error) {}
   };
 
   useEffect(() => {

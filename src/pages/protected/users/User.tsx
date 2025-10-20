@@ -18,21 +18,24 @@ export default function UserPage() {
   const [search, setSearch] = useState("");
   const [selectedRole, setSelectedRole] = useState("all");
 
-  const { users, loading } = useUser();
+  const { users, loading, loggedOnUser } = useUser();
 
   const filteredUsers = useMemo(() => {
-    return users.filter((user) => {
-      const matchesSearch =
-        user.firstname.toLowerCase().includes(search.toLowerCase()) ||
-        user.lastname.toLowerCase().includes(search.toLowerCase()) ||
-        user.email.toLowerCase().includes(search.toLowerCase()) ||
-        user.role.toLowerCase().includes(search.toLowerCase());
+    return users
+      .filter((user) => user.id !== loggedOnUser?.id)
+      .filter((user) => {
+        const matchesSearch =
+          user.firstname.toLowerCase().includes(search.toLowerCase()) ||
+          user.lastname.toLowerCase().includes(search.toLowerCase()) ||
+          user.email.toLowerCase().includes(search.toLowerCase()) ||
+          user.role.toLowerCase().includes(search.toLowerCase());
 
-      const matchesRole = selectedRole === "all" || user.role === selectedRole;
+        const matchesRole =
+          selectedRole === "all" || user.role === selectedRole;
 
-      return matchesSearch && matchesRole;
-    });
-  }, [users, search, selectedRole]);
+        return matchesSearch && matchesRole;
+      });
+  }, [users, loggedOnUser, search, selectedRole]);
 
   return (
     <section className="flex flex-col gap-4">

@@ -71,4 +71,12 @@ export const authService = {
     if (error) throw new Error(error.message || "Failed to update password.");
     return { success: true };
   },
+
+  async forgotPassword(email: string) {
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/reset-password`,
+    });
+    if (error) throw new Error(error.message || "Failed to send reset email");
+    return data;
+  },
 };

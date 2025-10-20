@@ -33,12 +33,7 @@ export default function Topbar() {
 
       {/* DESKTOP CONTROLS */}
       <div className="hidden md:flex items-center gap-3">
-        <div className="flex gap-1.5">
-          <Button size={"icon"} variant={"ghost"} title="notifications">
-            <Bell className="size-5" />
-          </Button>
-          <ToggleMode />
-        </div>
+        <ToggleMode />
         <CardProfile />
       </div>
 

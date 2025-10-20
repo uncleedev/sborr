@@ -42,6 +42,7 @@ export const useSession = () => {
       toast.success("Successfully added session");
       return true;
     } catch (err: any) {
+      console.error(err);
       toast.error(err || "Failed to add session");
       return false;
     }

@@ -51,7 +51,9 @@ export default function SessionPage() {
           <h3 className="">Session Management</h3>
           <p>Manage session schedule.</p>
         </div>
-        <AddSession />
+        <div className="flex items-center gap-4">
+          <AddSession />
+        </div>
       </header>
 
       <Card className="p-4 flex flex-col gap-4">

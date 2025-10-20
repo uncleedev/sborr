@@ -25,12 +25,6 @@ export default function CardProfile() {
   const email = loggedOnUser?.email ?? session?.user?.email ?? "Unknown";
   const role = loggedOnUser?.role ?? "unknown";
 
-  const avatarUrl =
-    loggedOnUser?.avatar_url ||
-    "https://ui-avatars.com/api/?name=" +
-      encodeURIComponent(name || "User") +
-      "&background=random";
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -41,7 +35,7 @@ export default function CardProfile() {
           <div className="w-8 h-8 rounded-full overflow-hidden bg-muted flex items-center justify-center">
             {loggedOnUser?.avatar_url ? (
               <img
-                src={avatarUrl}
+                src={loggedOnUser.avatar_url}
                 alt="User Avatar"
                 className="object-cover w-full h-full"
               />
@@ -66,7 +60,7 @@ export default function CardProfile() {
           <div className="w-10 h-10 rounded-full overflow-hidden bg-muted flex items-center justify-center">
             {loggedOnUser?.avatar_url ? (
               <img
-                src={avatarUrl}
+                src={loggedOnUser.avatar_url}
                 alt="User Avatar"
                 className="object-cover w-full h-full"
               />
