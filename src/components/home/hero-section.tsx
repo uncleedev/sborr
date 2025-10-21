@@ -14,7 +14,7 @@ export default function HeroSection() {
         <div className="max-w-6xl mx-auto text-center space-y-10">
           {/* Title */}
           <div className="space-y-5">
-            <h1 className="text-3xl sm:text-4xl lg:text-6xl font-extrabold text-primary leading-tight drop-shadow-md text-stroke">
+            <h1 className="text-3xl sm:text-4xl lg:text-6xl font-extrabold text-primary  text-shadow-2xs text-shadow-amber-50">
               <span className="block">Sangguniang Bayan</span>
               <span className="block">Ordinance & Resolution</span>
               <span className="block">Repository</span>
@@ -33,7 +33,7 @@ export default function HeroSection() {
               size="lg"
               className="px-8 py-4 text-lg rounded-xl shadow-lg bg-primary hover:bg-primary/90 text-white hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
             >
-              <Link to="">View Legislative Updates</Link>
+              <Link to="/legislatives">View all legislatives</Link>
             </Button>
           </div>
 

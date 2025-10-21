@@ -47,14 +47,10 @@ export default function Footer() {
                 Councilors
               </a>
             </li>
+
             <li>
               <a href="#" className="hover:text-white">
-                Committees
-              </a>
-            </li>
-            <li>
-              <a href="#" className="hover:text-white">
-                Sessions
+                Legislatives
               </a>
             </li>
           </ul>
@@ -97,11 +93,6 @@ export default function Footer() {
             <li>
               <a href="#" className="hover:text-white">
                 Email Us
-              </a>
-            </li>
-            <li>
-              <a href="#" className="hover:text-white">
-                Contact Form
               </a>
             </li>
           </ul>

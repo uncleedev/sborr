@@ -5,23 +5,23 @@ import Logo from "../shared/logo";
 
 export default function Header() {
   const navs = [
-    { name: "councilors", path: "/#councilors" },
-    { name: "legislative", path: "/#legislative" },
-    { name: "about", path: "/#about" },
+    { name: "councilors", path: "/councilors" },
+    { name: "legislative", path: "/legislatives" },
+    { name: "about", path: "/about" },
   ];
 
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header className="bg-primary shadow-md fixed w-full z-50">
+    <header className="bg-primary shadow-md  w-full z-50">
       <div className="screen h-16 flex items-center justify-between px-4 lg:px-6">
         {/* Logo */}
-        <div className="flex flex-col lg:flex-row lg:items-center gap-1">
+        <Link to={"/"} className="flex flex-col">
           <Logo size="4xl" />
           <p className="text-[10px] font-medium text-muted-foreground hidden lg:block">
             Municipality of Montalban
           </p>
-        </div>
+        </Link>
 
         {/* Desktop Nav */}
         <nav className="hidden lg:flex items-center gap-6">
@@ -29,7 +29,7 @@ export default function Header() {
             <Link
               key={index}
               to={item.path}
-              className="hover:text-teal-300 transition-colors"
+              className="hover:text-secondary text-white transition-colors"
             >
               <h4 className="capitalize font-medium">{item.name}</h4>
             </Link>

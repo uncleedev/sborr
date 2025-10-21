@@ -1,4 +1,4 @@
-import { Eye, Calendar, FileText, User } from "lucide-react";
+import { Eye } from "lucide-react";
 import { Button } from "../ui/button";
 import {
   Dialog,
@@ -42,30 +42,33 @@ export default function ViewDocument({ document }: ViewDocumentProps) {
 
         {/* Scrollable Content */}
         <ScrollArea className="flex-1 mt-4 border-t">
-          <div className="p-6 space-y-4">
-            {/* Document Details */}
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center gap-2">
-                <FileText className="size-4 text-primary" />
-                <span className="font-medium capitalize">
-                  Type: {document.type}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="font-medium">Series:</span>
-                <span>{document.series}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <User className="size-4 text-primary" />
-                <span className="font-medium">Author:</span>
-                <span>{document.author_name}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Calendar className="size-4 text-primary" />
-                <span className="font-medium">Created:</span>
-                <span>{formatDateWithOrdinal(document.created_at)}</span>
-              </div>
-            </div>
+          <div className="p-6 space-y-3 text-sm">
+            <p>
+              <strong>Type:</strong> {document.type}
+            </p>
+            <p>
+              <strong>Series:</strong> {document.series}
+            </p>
+            <p>
+              <strong>Author:</strong> {document.author_name}
+            </p>
+            <p>
+              <strong>Created:</strong>{" "}
+              {formatDateWithOrdinal(document.created_at)}
+            </p>
+
+            {/* ✅ Approved Info (No icons, simple text) */}
+            {document.approved_by && (
+              <p>
+                <strong>Approved by:</strong> {document.approved_by}
+              </p>
+            )}
+            {document.approved_at && (
+              <p>
+                <strong>Approved at:</strong>{" "}
+                {formatDateWithOrdinal(document.approved_at)}
+              </p>
+            )}
 
             {/* PDF Viewer */}
             {document.file_url ? (

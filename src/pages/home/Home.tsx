@@ -2,29 +2,12 @@ import CardDocument from "@/components/cards/card-document";
 import HeroSection from "@/components/home/hero-section";
 import ImpactSection from "@/components/home/impact-section";
 import { useDocument } from "@/hooks/useDocument";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const { archivedDocuments, loading, error } = useDocument();
-
-  const handleView = (doc: any) => {
-    toast.info(`Viewing document: ${doc.title}`);
-  };
-
-  const handleDownload = async (doc: any) => {
-    try {
-      const link = document.createElement("a");
-      link.href = doc.file_url;
-      link.download = doc.title || "document";
-      link.click();
-      toast.success("Download started");
-    } catch {
-      toast.error("Failed to download document");
-    }
-  };
+  const { archivedDocuments, loading } = useDocument();
 
   const recentDocuments = [...archivedDocuments]
     .sort(
@@ -38,7 +21,10 @@ export default function HomePage() {
       <HeroSection />
       <ImpactSection />
 
-      <section className="flex flex-col items-center gap-6 p-6 md:p-8 lg:p-12">
+      <section
+        className="flex flex-col items-center gap-6 p-6 md:p-8 lg:p-12"
+        id="legislative"
+      >
         <header className="text-center mb-6">
           <h2 className="text-2xl font-bold text-primary">
             Recent Legislative Updates
@@ -52,7 +38,6 @@ export default function HomePage() {
         {loading && (
           <p className="text-muted-foreground">Loading documents...</p>
         )}
-        {error && <p className="text-destructive">{error}</p>}
 
         {!loading && recentDocuments.length === 0 && (
           <p className="text-muted-foreground">
@@ -62,16 +47,10 @@ export default function HomePage() {
 
         <div className="w-full flex flex-col gap-6">
           {recentDocuments.map((doc) => (
-            <CardDocument
-              key={doc.id}
-              document={doc}
-              onView={handleView}
-              onDownload={handleDownload}
-            />
+            <CardDocument key={doc.id} data={doc} />
           ))}
         </div>
 
-        {/* ✅ View All Documents Button */}
         {!loading && archivedDocuments.length > 3 && (
           <Button
             className="mt-6 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg px-6 py-2"

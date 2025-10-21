@@ -19,6 +19,8 @@ import NotFoundAuth from "./pages/auth/NotFound";
 import NotFoundPage from "./pages/home/NotFound";
 import LegislativePage from "./pages/home/Legislative";
 import LayoutHome from "./pages/home/layout";
+import CouncilorPage from "./pages/home/Councilor";
+import AboutPage from "./pages/home/About";
 
 export default function App() {
   return (
@@ -28,6 +30,8 @@ export default function App() {
           <Route element={<LayoutHome />}>
             <Route index element={<InitialRoute />} />
             <Route path="/legislatives" element={<LegislativePage />} />
+            <Route path="/councilors" element={<CouncilorPage />} />
+            <Route path="/about" element={<AboutPage />} />
           </Route>
 
           <Route path="auth" element={<LayoutAuth />}>

@@ -46,6 +46,7 @@ export default function InviteUser() {
     register,
     handleSubmit,
     setValue,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<UserForm>({
     resolver: zodResolver(userSchema),
@@ -56,6 +57,7 @@ export default function InviteUser() {
       const result = await authService.inviteUser(data);
       console.log("Invite result:", result);
       toast.success("Successfully invited user");
+      reset();
     } catch (error: any) {
       console.error("Invite error:", error);
       toast.error(error.message || "Failed to invite user");
