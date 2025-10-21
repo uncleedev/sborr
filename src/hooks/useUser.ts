@@ -6,6 +6,7 @@ import { useAuth } from "./useAuth";
 
 export const useUser = () => {
   const [loggedOnUser, setLoggedOnUser] = useState<User>();
+  const [councilors, setCouncilors] = useState<User[]>([]);
 
   const { session } = useAuth();
 
@@ -44,6 +45,12 @@ export const useUser = () => {
       setLoggedOnUser(user);
     }
   }, [session, users]);
+
+  useEffect(() => {
+    const councilors = users.filter((user) => user.role === "councilor");
+
+    setCouncilors(councilors);
+  }, [users]);
 
   /* ---------- CREATE USER ---------- */
   const handleAddUser = useCallback(
@@ -111,6 +118,7 @@ export const useUser = () => {
 
   return {
     users,
+    councilors,
     loggedOnUser,
     loading,
     error,

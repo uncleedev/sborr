@@ -22,6 +22,8 @@ export const useDocument = () => {
   } = useDocumentStore();
 
   const [forReviewDocuments, setForReviewDocuments] = useState<Document[]>([]);
+  const [archivedDocuments, setArchivedDocuments] = useState<Document[]>([]);
+  const [ordinanceDocuments, setOrdinaceDocuments] = useState<Document[]>([]);
 
   useEffect(() => {
     const fetchDocuments = async () => {
@@ -35,11 +37,26 @@ export const useDocument = () => {
   }, []);
 
   useEffect(() => {
-    const filtered = documents.filter(
+    const forReview = documents.filter(
       (document) => document.status === "for_review"
     );
-    setForReviewDocuments(filtered);
+    setForReviewDocuments(forReview);
+
+    const archived = documents.filter(
+      (document) => document.status === "archived"
+    );
+    setArchivedDocuments(archived);
+
+    const ordinances = documents.filter(
+      (documents) => documents.type === "ordinance"
+    );
+
+    setOrdinaceDocuments(ordinances);
   }, [documents]);
+
+  const getArchivedDocuments = (): Document[] => {
+    return documents.filter((document) => document.status === "archived");
+  };
 
   const handleAddDocument = async (document: DocumentCreate, file?: File) => {
     try {
@@ -47,7 +64,7 @@ export const useDocument = () => {
       toast.success("Successfully added document");
       return true;
     } catch (error: any) {
-      toast.error(error);
+      toast.error(error.message || "Failed to add document");
       return false;
     }
   };
@@ -62,7 +79,7 @@ export const useDocument = () => {
       toast.success("Successfully updated document");
       return true;
     } catch (error: any) {
-      toast.error(error);
+      toast.error(error.message || "Failed to update document");
       return false;
     }
   };
@@ -73,7 +90,7 @@ export const useDocument = () => {
       toast.success("Successfully deleted document");
       return true;
     } catch (error: any) {
-      toast.error(error);
+      toast.error(error.message || "Failed to delete document");
       return false;
     }
   };
@@ -83,11 +100,11 @@ export const useDocument = () => {
     status: DocumentStatus
   ): Promise<boolean> => {
     try {
-      await updateDocument(id, { status: status });
+      await updateDocument(id, { status });
       toast.success("Successfully updated document status");
       return true;
     } catch (error: any) {
-      toast.error(error);
+      toast.error(error.message || "Failed to update status");
       return false;
     }
   };
@@ -96,7 +113,12 @@ export const useDocument = () => {
     documents,
     loading,
     error,
+
     forReviewDocuments,
+    archivedDocuments,
+    getArchivedDocuments,
+    ordinanceDocuments,
+
     handleAddDocument,
     handleEditDocument,
     handleDeleteDocument,

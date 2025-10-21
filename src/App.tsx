@@ -17,13 +17,18 @@ import ForgotPasswordPage from "./pages/auth/ForgotPassword";
 import LayoutAuth from "./pages/auth/LayoutAuth";
 import NotFoundAuth from "./pages/auth/NotFound";
 import NotFoundPage from "./pages/home/NotFound";
+import LegislativePage from "./pages/home/Legislative";
+import LayoutHome from "./pages/home/layout";
 
 export default function App() {
   return (
     <AppRouter>
       <Routes>
         <Route element={<PublicRoute />}>
-          <Route index element={<InitialRoute />} />
+          <Route element={<LayoutHome />}>
+            <Route index element={<InitialRoute />} />
+            <Route path="/legislatives" element={<LegislativePage />} />
+          </Route>
 
           <Route path="auth" element={<LayoutAuth />}>
             <Route path="/auth/signin" element={<SigninPage />} />

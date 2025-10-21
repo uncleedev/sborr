@@ -1,8 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useSessionStore } from "@/stores/session-store";
 import {
   AgendaCreate,
+  Session,
   SessionCreate,
   SessionUpdate,
 } from "@/types/session-type";
@@ -24,6 +25,8 @@ export const useSession = () => {
 
   const { documents } = useDocument();
 
+  const [completedSession, setCompletedSession] = useState<Session[]>([]);
+
   useEffect(() => {
     getAllSessions();
     subscribe();
@@ -32,6 +35,14 @@ export const useSession = () => {
       unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    const completedSession = sessions.filter(
+      (session) => session.status === "completed"
+    );
+
+    setCompletedSession(completedSession);
+  }, [sessions]);
 
   const handleAddSession = async (
     session: SessionCreate,
@@ -94,6 +105,7 @@ export const useSession = () => {
     loading,
     error,
     handleAddSession,
+    completedSession,
     handleEditSession,
     handleDeleteSession,
     getAgendaBySchedule,

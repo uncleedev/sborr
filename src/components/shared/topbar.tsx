@@ -23,7 +23,9 @@ export default function Topbar() {
     <Card className="w-full flex-row items-center justify-between p-4">
       <h3 className="hidden md:block text-muted-foreground">
         SBORR /{" "}
-        <span className="text-foreground uppercase">{activePath.slice(1)}</span>
+        <span className="text-foreground uppercase">
+          {activePath.replace("/protected/", "")}
+        </span>
       </h3>
 
       {/* MOBILE LOGO */}

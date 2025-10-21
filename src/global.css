@@ -240,7 +240,11 @@ body {
     @apply text-xs lg:text-base font-medium;
   }
 
-  p {
-    @apply text-muted-foreground;
+  .screen {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .text-stroke {
+    -webkit-text-stroke: 1.5px white;
   }
 }
