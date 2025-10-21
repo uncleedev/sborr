@@ -1,5 +1,6 @@
 import { useUser } from "@/hooks/useUser";
 import { Card } from "@/components/ui/card";
+import { User as UserIcon } from "lucide-react"; // 👈 Import a fallback icon
 
 export default function CouncilorPage() {
   const { councilors, loading } = useUser();
@@ -19,6 +20,7 @@ export default function CouncilorPage() {
         </header>
 
         {loading ? (
+          // Skeletons
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
             {skeletons.map((_, index) => (
               <Card
@@ -38,6 +40,7 @@ export default function CouncilorPage() {
             No councilors found.
           </p>
         ) : (
+          // Councilor cards
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
             {councilors.map((councilor) => (
               <Card
@@ -45,19 +48,25 @@ export default function CouncilorPage() {
                 className="flex flex-col gap-4 items-center p-6 text-center shadow rounded-xl bg-white
                            transform transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl"
               >
-                <div className="w-32 h-32">
-                  <img
-                    src={councilor.avatar_url || "/default-avatar.webp"}
-                    alt={`${councilor.firstname} ${councilor.lastname}`}
-                    className="w-full h-full object-cover rounded-full border border-gray-200"
-                  />
+                <div className="w-32 h-32 flex items-center justify-center rounded-full border border-gray-200 bg-gray-50 overflow-hidden">
+                  {councilor.avatar_url ? (
+                    <img
+                      src={councilor.avatar_url}
+                      alt={`${councilor.firstname} ${councilor.lastname}`}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <UserIcon className="w-16 h-16 text-gray-400" />
+                  )}
                 </div>
+
                 <h3 className="text-lg font-semibold text-gray-900">
                   {councilor.firstname} {councilor.lastname}
                 </h3>
                 <p className="text-sm text-blue-600 capitalize">
                   {councilor.role.replace("_", " ")}
                 </p>
+
                 {councilor.email && (
                   <p className="text-sm text-gray-500 truncate">
                     <a
@@ -68,6 +77,7 @@ export default function CouncilorPage() {
                     </a>
                   </p>
                 )}
+
                 {councilor.bio && (
                   <p className="text-sm text-muted-foreground">
                     {councilor.bio}
