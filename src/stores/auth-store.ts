@@ -12,6 +12,12 @@ interface AuthState {
   initializeSession: () => Promise<void>;
   signout: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
+  sendOtp: (email: string) => Promise<void>;
+  resetPasswordWithOtp: (
+    email: string,
+    otp: string,
+    newPassword: string
+  ) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -63,6 +69,30 @@ export const useAuthStore = create<AuthState>((set) => ({
       await authService.forgotPassword(email);
     } catch (err: any) {
       set({ error: err.message || "Faile to forgot password" });
+      throw err;
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  sendOtp: async (email) => {
+    set({ loading: true, error: null });
+    try {
+      await authService.sendOtp(email);
+    } catch (err: any) {
+      set({ error: err.message });
+      throw err;
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  resetPasswordWithOtp: async (email, otp, newPassword) => {
+    set({ loading: true, error: null });
+    try {
+      await authService.resetPasswordWithOtp(email, otp, newPassword);
+    } catch (err: any) {
+      set({ error: err.message });
       throw err;
     } finally {
       set({ loading: false });

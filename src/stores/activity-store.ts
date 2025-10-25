@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { create } from "zustand";
 
 interface ActivityState {
-  logs: ActivityLog[] | [];
+  logs: ActivityLog[];
   error: string | null;
   loading: boolean;
 
@@ -17,7 +17,8 @@ export const useLogStore = create<ActivityState>((set) => ({
   loading: false,
 
   getAllLogs: async () => {
-    set({ loading: false, error: null });
+    set({ loading: true, error: null });
+
     try {
       const data = await activityService.getAllActivity();
       set({ logs: data });

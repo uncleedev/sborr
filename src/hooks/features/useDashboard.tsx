@@ -31,7 +31,7 @@ export const useDashboardFeatures = () => {
   // ====== REPORT CARDS ======
   const reportData: CardReportProps[] = useMemo(() => {
     const totalDocuments = documents.length;
-    const pendingApprovals = documents.filter(
+    const forReviewDocuments = documents.filter(
       (doc) => doc.status === "for_review"
     ).length;
 
@@ -105,15 +105,15 @@ export const useDashboardFeatures = () => {
           usersThisWeek > 0 ? `+${usersThisWeek} this week` : "No new users",
       },
       {
-        label: "Pending Approvals",
-        value: pendingApprovals,
+        label: "For Review Documents",
+        value: forReviewDocuments,
         icon: Clock,
         labelDescription:
-          pendingApprovals > 5
-            ? `${pendingApprovals - 5} urgent`
-            : pendingApprovals > 0
-            ? "Review pending items"
-            : "All caught up!",
+          forReviewDocuments > 5
+            ? `${forReviewDocuments - 5} urgent`
+            : forReviewDocuments > 0
+            ? "Documents awaiting review"
+            : "All documents reviewed",
       },
     ];
   }, [documents, users, sessions]);
@@ -136,7 +136,6 @@ export const useDashboardFeatures = () => {
       "Dec",
     ];
 
-    // Initialize
     const monthlyData: MonthlyChartData[] = months.map((m) => ({
       name: m,
       resolution: 0,
@@ -145,7 +144,6 @@ export const useDashboardFeatures = () => {
       total: 0,
     }));
 
-    // Count documents per month/category
     documents.forEach((doc) => {
       const d = new Date(doc.created_at);
       if (d.getFullYear() !== currentYear) return;
@@ -158,9 +156,8 @@ export const useDashboardFeatures = () => {
       monthlyData[i].total++;
     });
 
-    // 🔥 Keep only the last 5 months
     const now = new Date();
-    const last5 = now.getMonth() + 1; // month is 0-indexed
+    const last5 = now.getMonth() + 1;
     const start = Math.max(last5 - 5, 0);
     return monthlyData.slice(start, last5);
   }, [documents]);

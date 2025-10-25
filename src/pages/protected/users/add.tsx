@@ -111,10 +111,7 @@ export default function AddUser() {
           <div className="flex flex-col items-center space-y-3">
             <div className="relative">
               <img
-                src={
-                  previewUrl ||
-                  "https://ui-avatars.com/api/?name=New+User&background=random"
-                }
+                src={previewUrl || "     "}
                 alt="Avatar Preview"
                 className="w-24 h-24 rounded-full object-cover border"
               />

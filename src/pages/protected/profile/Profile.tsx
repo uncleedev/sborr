@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { useUser } from "@/hooks/useUser";
 import { formatDateWithOrdinal } from "@/lib/utils";
-import { Camera, Mail, Calendar, UserPen } from "lucide-react";
+import { Camera, Calendar, UserPen } from "lucide-react";
 import { toast } from "sonner";
 import { authService } from "@/services/auth-service";
 import { PasswordInput } from "@/components/shared/password-input";
@@ -21,7 +21,12 @@ export default function ProfilePage() {
     confirmPassword: "",
   });
 
-  const { loggedOnUser, handleEditUser } = useUser();
+  const {
+    loggedOnUser,
+    handleEditUser,
+    handleUploadAvatar,
+    handleDeleteAvatar,
+  } = useUser();
   const { session } = useAuth();
   const newPasswordRef = useRef<HTMLInputElement | null>(null);
 
@@ -194,7 +199,7 @@ export default function ProfilePage() {
                   {/* Email */}
                   <div className="col-span-2">
                     <label className="text-sm text-gray-600 font-medium flex items-center gap-1">
-                      <Mail className="w-4 h-4" /> Email Address
+                      Email Address
                     </label>
                     <p className="mt-1 text-sm font-medium">
                       {loggedOnUser?.email || "—"}
@@ -268,19 +273,80 @@ export default function ProfilePage() {
               {/* Profile Picture */}
               <Card className="p-6 text-center">
                 <h4 className="font-semibold text-lg mb-4">Profile Picture</h4>
-                <div className="w-32 h-32 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full mx-auto flex items-center justify-center text-white text-4xl font-bold mb-4">
-                  {initials || "?"}
+
+                <div className="relative w-32 h-32 mx-auto mb-4">
+                  {loggedOnUser?.avatar_url ? (
+                    <img
+                      src={loggedOnUser.avatar_url}
+                      alt="Profile Avatar"
+                      className="w-32 h-32 rounded-full object-cover border shadow-sm"
+                    />
+                  ) : (
+                    <div className="w-32 h-32 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white text-4xl font-bold">
+                      {initials || "?"}
+                    </div>
+                  )}
+
+                  {editMode && (
+                    <>
+                      {/* Upload Button */}
+                      <label
+                        htmlFor="avatarUpload"
+                        className="absolute bottom-1 right-1 bg-white p-2 rounded-full shadow cursor-pointer hover:bg-gray-100 transition"
+                      >
+                        <Camera className="w-4 h-4 text-gray-700" />
+                        <input
+                          id="avatarUpload"
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file || !loggedOnUser?.id) return;
+
+                            try {
+                              await handleUploadAvatar(loggedOnUser.id, file);
+                            } catch (err: any) {
+                              toast.error(
+                                err.message || "Failed to upload avatar"
+                              );
+                            }
+                          }}
+                        />
+                      </label>
+
+                      {/* Delete Button */}
+                      {loggedOnUser?.avatar_url && (
+                        <button
+                          type="button"
+                          className="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded-full shadow hover:bg-red-600"
+                          onClick={async () => {
+                            if (!loggedOnUser?.id) return;
+                            try {
+                              await handleDeleteAvatar(
+                                loggedOnUser.id,
+                                loggedOnUser.avatar_path
+                              );
+                            } catch (err: any) {
+                              toast.error(
+                                err.message || "Failed to delete avatar"
+                              );
+                            }
+                          }}
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </>
+                  )}
                 </div>
+
                 <p className="font-medium">
                   {loggedOnUser?.firstname} {loggedOnUser?.lastname}
                 </p>
                 <p className="text-sm text-gray-600">
                   {loggedOnUser?.role || "—"}
                 </p>
-                <Button variant="outline" className="w-full mt-4" disabled>
-                  <Camera className="w-4 h-4" />
-                  Change Photo
-                </Button>
               </Card>
 
               {/* Account Info */}

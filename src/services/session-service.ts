@@ -9,7 +9,7 @@ import {
 } from "@/types/session-type";
 
 const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID!;
-const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID!;
+const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_SESSION!;
 const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY!;
 
 export const sessionService = {
@@ -18,7 +18,6 @@ export const sessionService = {
     session: SessionCreate,
     agendas: AgendaCreate[]
   ): Promise<{ sessions: Session[]; agendas: Agenda[] }> {
-    // 1. Insert session
     const { data: sessionData, error: sessionError } = await supabase
       .from("sessions")
       .insert([{ ...session }])
@@ -48,55 +47,60 @@ export const sessionService = {
       agendaData = insertedAgenda as Agenda[];
     }
 
-    // 2. Fetch all users
-    const { data: users, error: usersError } = await supabase
-      .from("users")
-      .select("id, firstname, lastname, email");
-
-    if (usersError) console.error("Failed to fetch users:", usersError);
-
-    // 3. Fetch agenda document titles for this session
-    const { data: documents, error: docsError } = await supabase
-      .from("documents")
-      .select("title")
-      .in(
-        "id",
-        agendaData.map((a) => a.document_id)
+    sessionService
+      .sendSessionEmails(sessionData![0], agendaData)
+      .then(() => console.log("Background: Emails sent successfully"))
+      .catch((err) =>
+        console.error("Background: Failed to send some session emails", err)
       );
 
-    if (docsError) console.error("Failed to fetch document titles:", docsError);
-
-    // 4. Preformat agenda as bullet list
-    const agendaList =
-      documents?.map((doc) => `• ${doc.title}`).join("<br>") || "";
-
-    // 5. Send email to all users
-    if (users && users.length > 0) {
-      for (const user of users) {
-        try {
-          await emailjs.send(
-            SERVICE_ID,
-            TEMPLATE_ID,
-            {
-              name: `${user.firstname} ${user.lastname}`,
-              session_type: session.type,
-              session_date: new Date(session.scheduled_at).toLocaleDateString(),
-              session_time: new Date(session.scheduled_at).toLocaleTimeString(),
-              session_venue: session.venue,
-              session_description: session.description || "",
-              agendaList, // <-- insert formatted agenda here
-              email: user.email,
-            },
-            PUBLIC_KEY
-          );
-          console.log(`Email sent to ${user.email}`);
-        } catch (err) {
-          console.error(`Failed to send email to ${user.email}`, err);
-        }
-      }
-    }
-
     return { sessions: sessionData as Session[], agendas: agendaData };
+  },
+
+  /* ---------- EMAIL SEND ---------- */
+  async sendSessionEmails(session: Session, agendas: Agenda[]) {
+    try {
+      const { data: users, error: usersError } = await supabase
+        .from("users")
+        .select("firstname, lastname, email");
+
+      if (usersError) throw usersError;
+
+      const { data: documents, error: docsError } = await supabase
+        .from("documents")
+        .select("title")
+        .in(
+          "id",
+          agendas.map((a) => a.document_id)
+        );
+
+      if (docsError) throw docsError;
+
+      const agendaList =
+        documents?.map((doc) => `• ${doc.title}`).join("<br>") || "";
+
+      const sendPromises = (users || []).map((user) =>
+        emailjs.send(
+          SERVICE_ID,
+          TEMPLATE_ID,
+          {
+            name: `${user.firstname} ${user.lastname}`,
+            session_type: session.type,
+            session_date: new Date(session.scheduled_at).toLocaleDateString(),
+            session_time: new Date(session.scheduled_at).toLocaleTimeString(),
+            session_venue: session.venue,
+            session_description: session.description || "",
+            agendaList,
+            email: user.email,
+          },
+          PUBLIC_KEY
+        )
+      );
+
+      await Promise.allSettled(sendPromises);
+    } catch (err) {
+      console.error("Error sending session emails:", err);
+    }
   },
 
   /* ---------- READ ---------- */

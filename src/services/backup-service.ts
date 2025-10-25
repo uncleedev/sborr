@@ -63,31 +63,7 @@ export const BackupService = {
       const text = await file.text();
       const backupData = JSON.parse(text);
 
-      const deleteOrder = [
-        "activity_logs",
-        "notifications_queue",
-        "session_documents",
-        "documents",
-        "sessions",
-        "users",
-      ];
-
-      for (const table of deleteOrder) {
-        if (!backupData[table]) continue;
-
-        const { error: deleteError } = await supabase
-          .from(table)
-          .delete()
-          .not("id", "is", null);
-        if (deleteError) {
-          console.error(`Error deleting ${table}:`, deleteError);
-          return {
-            success: false,
-            message: `Error clearing ${table}: ${deleteError.message}`,
-          };
-        }
-      }
-
+      // Define restore order
       const insertOrder = [
         "users",
         "sessions",
@@ -100,30 +76,23 @@ export const BackupService = {
       for (const table of insertOrder) {
         if (!backupData[table] || !Array.isArray(backupData[table])) continue;
 
-        const { error } = await supabase.from(table).insert(backupData[table]);
-        if (error) {
-          console.error(`Error restoring ${table}:`, error);
+        console.log(`Merging data for ${table}...`);
 
-          if (error.message.includes("duplicate key value")) {
-            const { error: upsertError } = await supabase
-              .from(table)
-              .upsert(backupData[table], { onConflict: "id" });
-            if (upsertError) {
-              return {
-                success: false,
-                message: `Error upserting ${table}: ${upsertError.message}`,
-              };
-            }
-          } else {
-            return {
-              success: false,
-              message: `Error restoring ${table}: ${error.message}`,
-            };
-          }
+        // ✅ Use UPSERT to merge data by primary key (id)
+        const { error } = await supabase
+          .from(table)
+          .upsert(backupData[table], { onConflict: "id" });
+
+        if (error) {
+          console.error(`Error merging ${table}:`, error);
+          return {
+            success: false,
+            message: `Error merging ${table}: ${error.message}`,
+          };
         }
       }
 
-      return { success: true, message: "Backup restored successfully!" };
+      return { success: true, message: "Backup merged successfully!" };
     } catch (error: any) {
       console.error("Restore error:", error);
       return { success: false, message: error.message || "Restore failed" };

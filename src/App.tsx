@@ -36,10 +36,7 @@ export default function App() {
 
           <Route path="auth" element={<LayoutAuth />}>
             <Route path="/auth/signin" element={<SigninPage />} />
-            <Route
-              path="/auth/reset-password"
-              element={<ResetPasswordPage />}
-            />
+
             <Route
               path="/auth/forgot-password"
               element={<ForgotPasswordPage />}

@@ -12,6 +12,13 @@ import { BackupService } from "@/services/backup-service";
 import { useLog } from "@/hooks/useLog";
 import { toast } from "sonner";
 import CardActivity from "@/components/cards/card-activity";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function SettingPage() {
   const [loading, setLoading] = useState(false);
@@ -19,7 +26,9 @@ export default function SettingPage() {
   const [refreshing, setRefreshing] = useState(false);
   const { logs } = useLog();
   const [expandedLogs, setExpandedLogs] = useState<Set<string>>(new Set());
+  const [selectedDate, setSelectedDate] = useState<string>("");
 
+  // Fetch backup files
   const fetchBackups = async () => {
     setRefreshing(true);
     try {
@@ -35,14 +44,54 @@ export default function SettingPage() {
     fetchBackups();
   }, []);
 
+  // Generate list of unique dates from logs
+  const logDates = Array.from(
+    new Set(
+      logs.map((log) =>
+        new Date(log.performed_at).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        })
+      )
+    )
+  ).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+
+  // Automatically set current date (or latest date if available)
+  useEffect(() => {
+    if (logDates.length > 0 && !selectedDate) {
+      setSelectedDate(logDates[0]); // ✅ defaults to the latest (usually today)
+    }
+  }, [logDates, selectedDate]);
+
+  // Filter logs by selected date
+  const filteredLogs = logs.filter(
+    (log) =>
+      new Date(log.performed_at).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      }) === selectedDate
+  );
+
+  // Log expand toggle
+  const toggleLog = (id: string) => {
+    setExpandedLogs((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) newSet.delete(id);
+      else newSet.add(id);
+      return newSet;
+    });
+  };
+
+  // Backup handling
   const handleBackup = async () => {
     setLoading(true);
     const result = await BackupService.createBackup();
     setLoading(false);
-
-    if (result.success) toast.success(result.message);
-    else toast.error(result.message);
-
+    result.success
+      ? toast.success(result.message)
+      : toast.error(result.message);
     fetchBackups();
   };
 
@@ -55,8 +104,9 @@ export default function SettingPage() {
       const file = new File([blob], fileName, { type: "application/json" });
 
       const result = await BackupService.restoreBackup(file);
-      if (result.success) toast.success(result.message);
-      else toast.error(result.message);
+      result.success
+        ? toast.success(result.message)
+        : toast.error(result.message);
     } catch (error: any) {
       toast.error(error.message || "Restore failed");
     }
@@ -85,32 +135,38 @@ export default function SettingPage() {
     }
   };
 
-  const toggleLog = (id: string) => {
-    setExpandedLogs((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) newSet.delete(id);
-      else newSet.add(id);
-      return newSet;
-    });
-  };
-
   return (
     <div className="grid grid-cols-5 gap-4 h-full">
-      <Card className="col-span-3 ">
-        <header className="flex justify-between">
+      {/* Activity Logs */}
+      <Card className="col-span-3 p-4">
+        <header className="flex justify-between items-center mb-4">
           <div>
             <h3 className="text-lg font-semibold">Activity Log</h3>
-            <p className="text-sm text-muted-foreground">see all logs</p>
+            <p className="text-sm text-muted-foreground">Logs by date</p>
           </div>
+
+          {/* Date Filter */}
+          <Select value={selectedDate} onValueChange={setSelectedDate}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select date" />
+            </SelectTrigger>
+            <SelectContent>
+              {logDates.map((date) => (
+                <SelectItem key={date} value={date}>
+                  {date}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </header>
 
         <div className="flex flex-col gap-4">
-          {logs.length === 0 ? (
+          {filteredLogs.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              No activity logs found.
+              No logs found for this day.
             </p>
           ) : (
-            logs.map((log) => (
+            filteredLogs.map((log) => (
               <CardActivity
                 key={log.id}
                 log={log}
@@ -122,7 +178,9 @@ export default function SettingPage() {
         </div>
       </Card>
 
+      {/* Backup Section */}
       <div className="col-span-2 space-y-4">
+        {/* Create Backup */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -149,6 +207,7 @@ export default function SettingPage() {
           </CardContent>
         </Card>
 
+        {/* Manage Backups */}
         <Card className="w-full shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
