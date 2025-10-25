@@ -60,12 +60,15 @@ export const sessionService = {
   /* ---------- EMAIL SEND ---------- */
   async sendSessionEmails(session: Session, agendas: Agenda[]) {
     try {
+      // Fetch users with role filtering (mayor, vice_mayor, councilor)
       const { data: users, error: usersError } = await supabase
         .from("users")
-        .select("firstname, lastname, email");
+        .select("firstname, lastname, email, role")
+        .in("role", ["mayor", "vice_mayor", "councilor"]);
 
       if (usersError) throw usersError;
 
+      // Fetch document titles for the agenda list
       const { data: documents, error: docsError } = await supabase
         .from("documents")
         .select("title")
@@ -79,6 +82,7 @@ export const sessionService = {
       const agendaList =
         documents?.map((doc) => `• ${doc.title}`).join("<br>") || "";
 
+      // Send email only to filtered users
       const sendPromises = (users || []).map((user) =>
         emailjs.send(
           SERVICE_ID,
@@ -98,8 +102,11 @@ export const sessionService = {
       );
 
       await Promise.allSettled(sendPromises);
+      console.log(
+        `✅ Sent session emails to ${users?.length || 0} recipients.`
+      );
     } catch (err) {
-      console.error("Error sending session emails:", err);
+      console.error("❌ Error sending session emails:", err);
     }
   },
 

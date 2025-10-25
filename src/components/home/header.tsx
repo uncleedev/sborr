@@ -7,6 +7,7 @@ export default function Header() {
   const navs = [
     { name: "councilors", path: "/councilors" },
     { name: "legislative", path: "/legislatives" },
+    { name: "session", path: "/sessions" },
     { name: "about", path: "/about" },
   ];
 

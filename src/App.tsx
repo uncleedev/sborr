@@ -12,7 +12,6 @@ import DashboardPage from "./pages/protected/dashboard/Dashboard";
 import ProfilePage from "./pages/protected/profile/Profile";
 import SettingPage from "./pages/protected/settings/Setting";
 import InitialRoute from "./routes/initial-route";
-import ResetPasswordPage from "./pages/auth/ResetPassword";
 import ForgotPasswordPage from "./pages/auth/ForgotPassword";
 import LayoutAuth from "./pages/auth/LayoutAuth";
 import NotFoundAuth from "./pages/auth/NotFound";
@@ -21,6 +20,7 @@ import LegislativePage from "./pages/home/Legislative";
 import LayoutHome from "./pages/home/layout";
 import CouncilorPage from "./pages/home/Councilor";
 import AboutPage from "./pages/home/About";
+import SessionsPage from "./pages/home/Sessions";
 
 export default function App() {
   return (
@@ -30,6 +30,7 @@ export default function App() {
           <Route element={<LayoutHome />}>
             <Route index element={<InitialRoute />} />
             <Route path="/legislatives" element={<LegislativePage />} />
+            <Route path="/sessions" element={<SessionsPage />} />
             <Route path="/councilors" element={<CouncilorPage />} />
             <Route path="/about" element={<AboutPage />} />
           </Route>

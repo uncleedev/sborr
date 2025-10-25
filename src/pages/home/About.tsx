@@ -32,15 +32,6 @@ export default function AboutPage() {
             </p>
           </div>
         </div>
-
-        {/* Team / About Info */}
-        <div className="space-y-6 text-center">
-          <h2 className="text-3xl font-bold text-gray-900">Meet the Team</h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            The Sangguniang Bayan is committed to transparency, accountability,
-            and serving the community with dedication and integrity.
-          </p>
-        </div>
       </div>
     </section>
   );

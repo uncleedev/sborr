@@ -14,7 +14,7 @@ export default function LegislativePage() {
     ordinance: false,
     memorandum: false,
   });
-  const [seriesFilter, setSeriesFilter] = useState("all"); // ✅ Series filter
+  const [seriesFilter, setSeriesFilter] = useState("all");
   const [authorFilter, setAuthorFilter] = useState("all");
   const [activeTab] = useState<"all" | "recent">("all");
 
@@ -32,7 +32,8 @@ export default function LegislativePage() {
   }, [documents]);
 
   const filteredDocuments = useMemo(() => {
-    let filtered = documents;
+    // Only archived documents are visible
+    let filtered = documents.filter((doc) => doc.status === "archived");
 
     // Search filter
     if (searchQuery) {
@@ -77,6 +78,7 @@ export default function LegislativePage() {
       );
     }
 
+    // Sort newest to oldest
     return filtered.sort(
       (a, b) =>
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
