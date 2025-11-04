@@ -32,9 +32,14 @@ import DeleteDocument from "./delete";
 interface Props {
   data: Document[];
   loading: boolean;
+  searchTerm?: string;
 }
 
-export default function TableDocument({ data, loading }: Props) {
+export default function TableDocument({
+  data,
+  loading,
+  searchTerm = "",
+}: Props) {
   const itemsPerPage = 10;
   const [page, setPage] = useState(1);
 
@@ -71,100 +76,132 @@ export default function TableDocument({ data, loading }: Props) {
     setDeleteOpen(true);
   };
 
+  // Function to highlight matching text
+  const highlightText = (text: string, search: string) => {
+    if (!search.trim()) return text;
+
+    const regex = new RegExp(`(${search})`, "gi");
+    const parts = text.split(regex);
+
+    return (
+      <>
+        {parts.map((part, index) =>
+          regex.test(part) ? (
+            <mark key={index} className="bg-yellow-300 font-semibold">
+              {part}
+            </mark>
+          ) : (
+            part
+          )
+        )}
+      </>
+    );
+  };
+
   return (
     <div className="space-y-6">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Title</TableHead>
-            <TableHead>Author</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>Series</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-
-        <TableBody>
-          {loading ? (
-            Array.from({ length: 5 }).map((_, i) => (
-              <TableRow key={i}>
-                {Array.from({ length: 6 }).map((__, j) => (
-                  <TableCell key={j}>
-                    <Skeleton className="h-4 w-[100px]" />
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))
-          ) : paginatedData.length === 0 ? (
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
             <TableRow>
-              <TableCell colSpan={6} className="text-center py-6">
-                No documents found.
-              </TableCell>
+              <TableHead className="w-[40%] min-w-[300px]">Title</TableHead>
+              <TableHead className="w-[15%]">Author</TableHead>
+              <TableHead className="w-[10%]">Type</TableHead>
+              <TableHead className="w-[10%]">Series</TableHead>
+              <TableHead className="w-[10%]">Status</TableHead>
+              <TableHead className="w-[15%]">Actions</TableHead>
             </TableRow>
-          ) : (
-            paginatedData.map((doc) => {
-              const isLocked = doc.status === "in_session";
+          </TableHeader>
 
-              return (
-                <TableRow key={doc.id}>
-                  <TableCell>{doc.title}</TableCell>
-                  <TableCell>{doc.author_name}</TableCell>
-                  <TableCell className="capitalize">{doc.type}</TableCell>
-                  <TableCell>{doc.series}</TableCell>
-                  <TableCell>{doc.status.replace("_", " ")}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        {/* View */}
-                        <DropdownMenuItem asChild>
-                          <Button
-                            variant="ghost"
-                            className="w-full justify-start"
-                            onClick={() => handleView(doc)}
-                          >
-                            <Eye className="size-4 mr-1" />
-                            View
-                          </Button>
-                        </DropdownMenuItem>
-
-                        <DropdownMenuItem asChild disabled={isLocked}>
-                          <Button
-                            variant="ghost"
-                            className="w-full justify-start"
-                            onClick={() => handleEdit(doc)}
-                            disabled={isLocked}
-                          >
-                            <Pencil className="size-4 mr-1" />
-                            Edit
-                          </Button>
-                        </DropdownMenuItem>
-
-                        <DropdownMenuItem asChild disabled={isLocked}>
-                          <Button
-                            variant="ghost"
-                            className="w-full justify-start "
-                            onClick={() => handleDelete(doc)}
-                            disabled={isLocked}
-                          >
-                            <Trash className="size-4 mr-1 text-red-600" />
-                            Delete
-                          </Button>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+          <TableBody>
+            {loading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <TableRow key={i}>
+                  {Array.from({ length: 6 }).map((__, j) => (
+                    <TableCell key={j}>
+                      <Skeleton className="h-4 w-[100px]" />
+                    </TableCell>
+                  ))}
                 </TableRow>
-              );
-            })
-          )}
-        </TableBody>
-      </Table>
+              ))
+            ) : paginatedData.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-6">
+                  No documents found.
+                </TableCell>
+              </TableRow>
+            ) : (
+              paginatedData.map((doc) => {
+                const isLocked = doc.status === "in_session";
+
+                return (
+                  <TableRow key={doc.id}>
+                    <TableCell className="break-words whitespace-normal align-top max-w-[400px]">
+                      {highlightText(doc.title, searchTerm)}
+                    </TableCell>
+                    <TableCell className="align-top">
+                      {highlightText(doc.author_name, searchTerm)}
+                    </TableCell>
+                    <TableCell className="capitalize align-top">
+                      {doc.type}
+                    </TableCell>
+                    <TableCell className="align-top">{doc.series}</TableCell>
+                    <TableCell className="align-top">
+                      {doc.status.replace("_", " ")}
+                    </TableCell>
+                    <TableCell className="align-top">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {/* View */}
+                          <DropdownMenuItem asChild>
+                            <Button
+                              variant="ghost"
+                              className="w-full justify-start"
+                              onClick={() => handleView(doc)}
+                            >
+                              <Eye className="size-4 mr-1" />
+                              View
+                            </Button>
+                          </DropdownMenuItem>
+
+                          <DropdownMenuItem asChild disabled={isLocked}>
+                            <Button
+                              variant="ghost"
+                              className="w-full justify-start"
+                              onClick={() => handleEdit(doc)}
+                              disabled={isLocked}
+                            >
+                              <Pencil className="size-4 mr-1" />
+                              Edit
+                            </Button>
+                          </DropdownMenuItem>
+
+                          <DropdownMenuItem asChild disabled={isLocked}>
+                            <Button
+                              variant="ghost"
+                              className="w-full justify-start "
+                              onClick={() => handleDelete(doc)}
+                              disabled={isLocked}
+                            >
+                              <Trash className="size-4 mr-1 text-red-600" />
+                              Delete
+                            </Button>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
       {!loading && totalPages > 1 && (
         <Pagination className="flex justify-center">

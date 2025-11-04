@@ -34,7 +34,7 @@ export default function ViewDocument({ open, onClose, document }: Props) {
         {document ? (
           <>
             <DialogHeader>
-              <DialogTitle>{document.title}</DialogTitle>
+              <DialogTitle className="capitalize">{document.title}</DialogTitle>
               <DialogDescription>
                 View detailed information about this document.
               </DialogDescription>
@@ -51,6 +51,11 @@ export default function ViewDocument({ open, onClose, document }: Props) {
                 <p>
                   <strong>Series:</strong> {document.series}
                 </p>
+                {document.number && (
+                  <p>
+                    <strong>Number:</strong> {document.number}
+                  </p>
+                )}
                 <p>
                   <strong>Status:</strong>{" "}
                   <span className="capitalize">{document.status}</span>

@@ -60,6 +60,7 @@ export default function EditDocument({ open, onClose, document }: Props) {
       author_name: document?.author_name || "",
       series: document?.series || new Date().getFullYear().toString(),
       description: document?.description ?? "",
+      number: document?.number || undefined,
       file: null,
     },
   });
@@ -84,6 +85,7 @@ export default function EditDocument({ open, onClose, document }: Props) {
         author_name: document.author_name,
         series: document.series,
         description: document.description,
+        number: document.number || undefined,
         approved_by: document.approved_by || "",
         approved_at: document.approved_at
           ? document.approved_at.split("T")[0]
@@ -230,32 +232,54 @@ export default function EditDocument({ open, onClose, document }: Props) {
               )}
             </div>
 
-            {/* Series (Year) */}
-            <div className="space-y-2">
-              <Label>Series (Year)</Label>
-              <Select
-                defaultValue={document.series}
-                onValueChange={(val) => setValue("series", val)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select year" />
-                </SelectTrigger>
-                <SelectContent className="max-h-64">
-                  <SelectGroup>
-                    {Array.from({ length: 20 }, (_, i) => {
-                      const y = new Date().getFullYear() - i;
-                      return (
-                        <SelectItem key={y} value={y.toString()}>
-                          {y}
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-              {errors.series && (
-                <p className="text-sm text-red-500">{errors.series.message}</p>
-              )}
+            {/* Series (Year) and Number */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Series (Year)</Label>
+                <Select
+                  defaultValue={document.series}
+                  onValueChange={(val) => setValue("series", val)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select year" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-64">
+                    <SelectGroup>
+                      {Array.from({ length: 20 }, (_, i) => {
+                        const y = new Date().getFullYear() - i;
+                        return (
+                          <SelectItem key={y} value={y.toString()}>
+                            {y}
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+                {errors.series && (
+                  <p className="text-sm text-red-500">
+                    {errors.series.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Number</Label>
+                <Input
+                  type="number"
+                  {...register("number", {
+                    valueAsNumber: true,
+                    setValueAs: (v) => (v === "" ? undefined : Number(v)),
+                  })}
+                  placeholder="Enter document number"
+                  min="1"
+                />
+                {errors.number && (
+                  <p className="text-sm text-red-500">
+                    {errors.number.message}
+                  </p>
+                )}
+              </div>
             </div>
 
             {/* Description */}

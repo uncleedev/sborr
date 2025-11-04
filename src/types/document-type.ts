@@ -22,6 +22,7 @@ export interface Document {
   file_path?: string | null;
   file_url?: string | null;
   file_name?: string | null;
+  number?: number | null;
 
   created_by: string;
   created_at: string;

@@ -80,7 +80,7 @@ export function FileInput({
         <input
           id="file-input"
           type="file"
-          accept="application/pdf"
+          accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
           className="sr-only"
           aria-label="Upload file"
           onChange={handleChange}
@@ -96,7 +96,8 @@ export function FileInput({
           </div>
           <p className="mb-1.5 text-sm font-medium">Upload file</p>
           <p className="text-muted-foreground text-xs">
-            Drag & drop or click to browse (max. {formatBytes(maxSize)})
+            Drag & drop or click to browse (PDF, DOC, DOCX - max.{" "}
+            {formatBytes(maxSize)})
           </p>
         </div>
       </div>

@@ -19,6 +19,7 @@ export const addDocumentSchema = z.object({
     .instanceof(File, { message: "File is required" })
     .nullable()
     .refine((file) => file !== null, { message: "File is required" }),
+  number: z.number().optional(),
   approved_by: z.string().optional(),
   approved_at: z.string().optional(),
 });
@@ -41,6 +42,7 @@ export const editDocumentSchema = z.object({
   series: z.string().min(1, "Series (Year) is required"),
   description: z.string().nullable().optional(),
   file: z.instanceof(File).nullable().optional(),
+  number: z.number().optional(),
   approved_by: z.string().optional(),
   approved_at: z.string().optional(),
 });

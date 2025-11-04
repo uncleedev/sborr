@@ -55,6 +55,7 @@ export default function AddDocument() {
       series: new Date().getFullYear().toString(),
       description: "",
       file: null,
+      number: undefined,
     },
   });
 
@@ -202,32 +203,54 @@ export default function AddDocument() {
               )}
             </div>
 
-            {/* Series */}
-            <div className="space-y-2">
-              <Label>Series (Year)</Label>
-              <Select
-                defaultValue={new Date().getFullYear().toString()}
-                onValueChange={(val) => setValue("series", val)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select year" />
-                </SelectTrigger>
-                <SelectContent className="max-h-64">
-                  <SelectGroup>
-                    {Array.from({ length: 20 }, (_, i) => {
-                      const y = new Date().getFullYear() - i;
-                      return (
-                        <SelectItem key={y} value={y.toString()}>
-                          {y}
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-              {errors.series && (
-                <p className="text-sm text-red-500">{errors.series.message}</p>
-              )}
+            {/* Series and Number */}
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="w-full md:w-1/2 space-y-2">
+                <Label>Series (Year)</Label>
+                <Select
+                  defaultValue={new Date().getFullYear().toString()}
+                  onValueChange={(val) => setValue("series", val)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select year" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-64">
+                    <SelectGroup>
+                      {Array.from({ length: 20 }, (_, i) => {
+                        const y = new Date().getFullYear() - i;
+                        return (
+                          <SelectItem key={y} value={y.toString()}>
+                            {y}
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+                {errors.series && (
+                  <p className="text-sm text-red-500">
+                    {errors.series.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="w-full md:w-1/2 space-y-2">
+                <Label>Number</Label>
+                <Input
+                  type="number"
+                  {...register("number", {
+                    valueAsNumber: true,
+                    setValueAs: (v) => (v === "" ? undefined : Number(v)),
+                  })}
+                  placeholder="Enter document number"
+                  min="1"
+                />
+                {errors.number && (
+                  <p className="text-sm text-red-500">
+                    {errors.number.message}
+                  </p>
+                )}
+              </div>
             </div>
 
             {/* Description */}

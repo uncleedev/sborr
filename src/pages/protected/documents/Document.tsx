@@ -23,6 +23,16 @@ export default function DocumentPage() {
   const [search, setSearch] = useState("");
   const [selectedType, setSelectedType] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
+  const [selectedSeries, setSelectedSeries] = useState("all");
+
+  const uniqueSeries = useMemo(() => {
+    const seriesSet = new Set(
+      documents
+        .map((doc) => doc.series)
+        .filter((series) => series && series.trim() !== "")
+    );
+    return Array.from(seriesSet).sort();
+  }, [documents]);
 
   const filteredDocuments = useMemo(() => {
     return documents.filter((doc) => {
@@ -33,10 +43,12 @@ export default function DocumentPage() {
       const matchesType = selectedType === "all" || doc.type === selectedType;
       const matchesStatus =
         selectedStatus === "all" || doc.status === selectedStatus;
+      const matchesSeries =
+        selectedSeries === "all" || doc.series === selectedSeries;
 
-      return matchesSearch && matchesType && matchesStatus;
+      return matchesSearch && matchesType && matchesStatus && matchesSeries;
     });
-  }, [documents, search, selectedType, selectedStatus]);
+  }, [documents, search, selectedType, selectedStatus, selectedSeries]);
 
   return (
     <section className="flex flex-col gap-4">
@@ -54,12 +66,12 @@ export default function DocumentPage() {
       {/* Filters & Table */}
       <Card className="p-4 flex flex-col gap-4">
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full  lg:place-self-end lg:w-1/2  items-stretch sm:items-center">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full lg:place-self-end lg:w-2/3 items-stretch sm:items-center">
           <Searchbar value={search} onChange={setSearch} />
 
           <Select value={selectedType} onValueChange={setSelectedType}>
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Filter by type" />
+              <SelectValue placeholder="All Types" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
@@ -73,9 +85,25 @@ export default function DocumentPage() {
             </SelectContent>
           </Select>
 
+          <Select value={selectedSeries} onValueChange={setSelectedSeries}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="All Series" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="all">All Series</SelectItem>
+                {uniqueSeries.map((series, index) => (
+                  <SelectItem key={index} value={series}>
+                    {series}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+
           <Select value={selectedStatus} onValueChange={setSelectedStatus}>
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Filter by status" />
+              <SelectValue placeholder="All Status" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
@@ -91,7 +119,11 @@ export default function DocumentPage() {
         </div>
 
         {/* Table */}
-        <TableDocument data={filteredDocuments} loading={loading} />
+        <TableDocument
+          data={filteredDocuments}
+          loading={loading}
+          searchTerm={search}
+        />
       </Card>
     </section>
   );
