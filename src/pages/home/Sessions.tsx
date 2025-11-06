@@ -1,8 +1,18 @@
+"use client";
+
 import { useState, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { useSession } from "@/hooks/useSession";
-import { Search, CalendarDays } from "lucide-react";
+import { Search, CalendarDays, Filter } from "lucide-react";
 
 export default function SessionsPage() {
   const { sessions, loading } = useSession();
@@ -56,7 +66,7 @@ export default function SessionsPage() {
       filtered = filtered.filter((s) => typeFilter[s.type]);
     }
 
-    // Sort: most recent first
+    // Sort newest first
     return filtered.sort(
       (a, b) =>
         new Date(b.scheduled_at).getTime() - new Date(a.scheduled_at).getTime()
@@ -81,72 +91,97 @@ export default function SessionsPage() {
     };
   }, [sessions]);
 
+  // 🔸 Shared filter UI component
+  const FilterContent = (
+    <div className="space-y-6">
+      <h2 className="text-xl font-bold mb-4">Filter</h2>
+
+      {/* Search */}
+      <div className="mb-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <input
+            type="text"
+            placeholder="Search sessions"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+          />
+        </div>
+      </div>
+
+      {/* Status Filter */}
+      <div className="mb-4">
+        <h3 className="font-semibold mb-2">Status</h3>
+        {["draft", "scheduled", "ongoing", "completed"].map((status) => (
+          <label key={status} className="flex items-center mb-2">
+            <input
+              type="checkbox"
+              checked={(statusFilter as any)[status]}
+              onChange={(e) =>
+                setStatusFilter((prev) => ({
+                  ...prev,
+                  [status]: e.target.checked,
+                }))
+              }
+              className="mr-2 w-4 h-4"
+            />
+            <span className="capitalize">{status}</span>
+          </label>
+        ))}
+      </div>
+
+      {/* Type Filter */}
+      <div>
+        <h3 className="font-semibold mb-2">Type</h3>
+        {["regular", "special"].map((type) => (
+          <label key={type} className="flex items-center mb-2">
+            <input
+              type="checkbox"
+              checked={(typeFilter as any)[type]}
+              onChange={(e) =>
+                setTypeFilter((prev) => ({
+                  ...prev,
+                  [type]: e.target.checked,
+                }))
+              }
+              className="mr-2 w-4 h-4"
+            />
+            <span className="capitalize">{type}</span>
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+
   return (
     <section className="pt-16 pb-10">
       <div className="screen">
+        {/* Mobile Filter Button */}
+        <div className="lg:hidden flex justify-end mb-4">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" className="flex items-center gap-2">
+                <Filter className="w-4 h-4" />
+                Filters
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="p-6 w-[85%] sm:w-[400px]">
+              <SheetHeader>
+                <SheetTitle>Filter Sessions</SheetTitle>
+              </SheetHeader>
+              <ScrollArea className="h-[calc(100vh-8rem)] mt-4">
+                {FilterContent}
+              </ScrollArea>
+            </SheetContent>
+          </Sheet>
+        </div>
+
         <div className="grid grid-cols-1 xl:grid-cols-[260px_1fr_300px] lg:grid-cols-[240px_1fr] gap-6 items-start">
-          {/* Filter Sidebar */}
+          {/* Desktop Filter Sidebar */}
           <aside className="hidden lg:block">
             <Card className="shadow-md sticky top-24 h-[calc(100vh-8rem)] overflow-y-auto p-4">
-              <h2 className="text-xl font-bold mb-4">Filter</h2>
-
-              {/* Search */}
-              <div className="mb-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <input
-                    type="text"
-                    placeholder="Search sessions"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-
-              {/* Status Filter */}
-              <div className="mb-4">
-                <h3 className="font-semibold mb-2">Status</h3>
-                {["draft", "scheduled", "ongoing", "completed"].map(
-                  (status) => (
-                    <label key={status} className="flex items-center mb-2">
-                      <input
-                        type="checkbox"
-                        checked={(statusFilter as any)[status]}
-                        onChange={(e) =>
-                          setStatusFilter((prev) => ({
-                            ...prev,
-                            [status]: e.target.checked,
-                          }))
-                        }
-                        className="mr-2 w-4 h-4"
-                      />
-                      <span className="capitalize">{status}</span>
-                    </label>
-                  )
-                )}
-              </div>
-
-              {/* Type Filter */}
-              <div>
-                <h3 className="font-semibold mb-2">Type</h3>
-                {["regular", "special"].map((type) => (
-                  <label key={type} className="flex items-center mb-2">
-                    <input
-                      type="checkbox"
-                      checked={(typeFilter as any)[type]}
-                      onChange={(e) =>
-                        setTypeFilter((prev) => ({
-                          ...prev,
-                          [type]: e.target.checked,
-                        }))
-                      }
-                      className="mr-2 w-4 h-4"
-                    />
-                    <span className="capitalize">{type}</span>
-                  </label>
-                ))}
-              </div>
+              {FilterContent}
             </Card>
           </aside>
 

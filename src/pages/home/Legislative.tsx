@@ -1,8 +1,18 @@
+"use client";
+
 import { useState, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Search, FileText, Filter } from "lucide-react";
 import { useDocument } from "@/hooks/useDocument";
-import { Search, FileText } from "lucide-react";
 import CardDocument from "@/components/cards/card-document";
 
 export default function LegislativePage() {
@@ -32,10 +42,8 @@ export default function LegislativePage() {
   }, [documents]);
 
   const filteredDocuments = useMemo(() => {
-    // Only archived documents are visible
     let filtered = documents.filter((doc) => doc.status === "archived");
 
-    // Search filter
     if (searchQuery) {
       filtered = filtered.filter(
         (doc) =>
@@ -45,7 +53,6 @@ export default function LegislativePage() {
       );
     }
 
-    // Type filter
     if (
       typeFilter.resolution ||
       typeFilter.ordinance ||
@@ -59,17 +66,14 @@ export default function LegislativePage() {
       });
     }
 
-    // Series filter
     if (seriesFilter !== "all") {
       filtered = filtered.filter((doc) => doc.series === seriesFilter);
     }
 
-    // Author filter
     if (authorFilter !== "all") {
       filtered = filtered.filter((doc) => doc.author_name === authorFilter);
     }
 
-    // Recent tab filter
     if (activeTab === "recent") {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -78,7 +82,6 @@ export default function LegislativePage() {
       );
     }
 
-    // Sort newest to oldest
     return filtered.sort(
       (a, b) =>
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
@@ -92,7 +95,6 @@ export default function LegislativePage() {
     activeTab,
   ]);
 
-  // Statistics
   const stats = useMemo(() => {
     const now = new Date();
     const thisMonth = documents.filter((doc) => {
@@ -128,90 +130,116 @@ export default function LegislativePage() {
     };
   }, [documents]);
 
+  // Shared Filter UI Component
+  const FilterContent = (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-xl font-bold mb-4">Filter</h2>
+
+        {/* Search */}
+        <div className="mb-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <input
+              type="text"
+              placeholder="Search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+            />
+          </div>
+        </div>
+
+        {/* Type Filter */}
+        <div className="mb-4">
+          <h3 className="font-semibold mb-2">Type</h3>
+          {[
+            { label: "Resolution", key: "resolution" },
+            { label: "Ordinance", key: "ordinance" },
+            { label: "Memorandum", key: "memorandum" },
+          ].map(({ label, key }) => (
+            <label key={key} className="flex items-center mb-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={(typeFilter as any)[key]}
+                onChange={(e) =>
+                  setTypeFilter((prev) => ({
+                    ...prev,
+                    [key]: e.target.checked,
+                  }))
+                }
+                className="mr-2 w-4 h-4"
+              />
+              <span>{label}</span>
+            </label>
+          ))}
+        </div>
+
+        {/* Series Filter */}
+        <div className="mb-4">
+          <h3 className="font-semibold mb-2">Series</h3>
+          <select
+            value={seriesFilter}
+            onChange={(e) => setSeriesFilter(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500"
+          >
+            <option value="all">All</option>
+            {seriesOptions.map((series) => (
+              <option key={series} value={series}>
+                {series}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Author Filter */}
+        <div>
+          <h3 className="font-semibold mb-2">Author</h3>
+          <select
+            value={authorFilter}
+            onChange={(e) => setAuthorFilter(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500"
+          >
+            <option value="all">All</option>
+            {authors.map((author) => (
+              <option key={author} value={author}>
+                {author}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <section className="pt-16 pb-10">
       <div className="screen">
+        {/* Mobile Filter Button */}
+        <div className="lg:hidden flex justify-end mb-4">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" className="flex items-center gap-2">
+                <Filter className="w-4 h-4" />
+                Filters
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="p-6 w-[85%] sm:w-[400px]">
+              <SheetHeader>
+                <SheetTitle>Filter Documents</SheetTitle>
+              </SheetHeader>
+              <ScrollArea className="h-[calc(100vh-8rem)] mt-4">
+                {FilterContent}
+              </ScrollArea>
+            </SheetContent>
+          </Sheet>
+        </div>
+
         <div className="grid grid-cols-1 xl:grid-cols-[260px_1fr_300px] lg:grid-cols-[240px_1fr] gap-6 items-start">
-          {/* Filter Sidebar */}
+          {/* Desktop Filter Sidebar */}
           <aside className="hidden lg:block">
             <Card className="shadow-md sticky top-24 h-[calc(100vh-8rem)] overflow-y-auto p-4">
-              <h2 className="text-xl font-bold mb-4">Filter</h2>
-
-              {/* Search */}
-              <div className="mb-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <input
-                    type="text"
-                    placeholder="Search"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-
-              {/* Type Filter */}
-              <div className="mb-4">
-                <h3 className="font-semibold mb-2">Type</h3>
-                {[
-                  { label: "Resolution", key: "resolution" },
-                  { label: "Ordinance", key: "ordinance" },
-                  { label: "Memorandum", key: "memorandum" },
-                ].map(({ label, key }) => (
-                  <label
-                    key={key}
-                    className="flex items-center mb-2 cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={(typeFilter as any)[key]}
-                      onChange={(e) =>
-                        setTypeFilter((prev) => ({
-                          ...prev,
-                          [key]: e.target.checked,
-                        }))
-                      }
-                      className="mr-2 w-4 h-4"
-                    />
-                    <span>{label}</span>
-                  </label>
-                ))}
-              </div>
-
-              {/* Series Filter */}
-              <div className="mb-4">
-                <h3 className="font-semibold mb-2">Series</h3>
-                <select
-                  value={seriesFilter}
-                  onChange={(e) => setSeriesFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500"
-                >
-                  <option value="all">All</option>
-                  {seriesOptions.map((series) => (
-                    <option key={series} value={series}>
-                      {series}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Author Filter */}
-              <div>
-                <h3 className="font-semibold mb-2">Author</h3>
-                <select
-                  value={authorFilter}
-                  onChange={(e) => setAuthorFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500"
-                >
-                  <option value="all">All</option>
-                  {authors.map((author) => (
-                    <option key={author} value={author}>
-                      {author}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {FilterContent}
             </Card>
           </aside>
 
@@ -250,7 +278,6 @@ export default function LegislativePage() {
             <Card className="p-6 shadow-md sticky top-24 h-[calc(100vh-8rem)] overflow-y-auto">
               <h2 className="text-xl font-bold mb-4">Statistics</h2>
 
-              {/* Total Documents */}
               <div className="rounded-lg p-6 mb-6 text-center">
                 <div className="text-4xl font-bold text-teal-900">
                   {stats.total.toLocaleString()}
@@ -260,7 +287,6 @@ export default function LegislativePage() {
                 </div>
               </div>
 
-              {/* Document Types */}
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-700">Ordinances</span>
@@ -288,7 +314,6 @@ export default function LegislativePage() {
                 </div>
               </div>
 
-              {/* Status Breakdown */}
               <div className="border-t pt-4 mb-6">
                 <h3 className="font-semibold mb-3">Status</h3>
                 <div className="space-y-3">

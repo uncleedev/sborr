@@ -60,7 +60,7 @@ export default function CardDocument({ data }: CardDocumentProps) {
             <span>{typeLabel}</span>
           </span>
           <span className="text-base font-semibold text-primary whitespace-nowrap">
-            No. {data.series}
+            {data.series} No. {data.number}
           </span>
         </div>
 
